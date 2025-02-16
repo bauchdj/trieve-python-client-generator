@@ -25,23 +25,25 @@ class OpenAPIParser:
             for method, details in methods.items():
                 if "operationId" not in details:
                     continue
+                # if "create_organization_api_key" not in details.get("operationId", ""):
+                #     continue
                 operation = self._parse_operation(path, method, details)
                 for http_param in operation.parameters:
-                    self._add_unique(http_params, http_param.dict(by_alias=True))
+                    self._add_unique_http_param(http_params, http_param.model_dump(by_alias=True))
                 operations.append(operation)
         headers = [Parameter(**http_param) for http_param in http_params if "header" in http_param["in"]]
         openapi = self.openapi_spec.get("openapi", "")
         info = self.openapi_spec.get("info", {})
-        servers = info.get("servers", [])
+        servers = self.openapi_spec.get("servers", [])
         return OpenAPIMetadata(
-            openapi=openapi, 
-            info=info, 
-            servers=servers, 
+            openapi=openapi,
+            info=info,
+            servers=servers,
             headers=headers,
-            operations=operations, 
+            operations=operations,
         )
 
-    def _add_unique(self, headers_list: List[Dict[str, Any]], new_header: Dict[str, Any]) -> None:
+    def _add_unique_http_param(self, headers_list: List[Dict[str, Any]], new_header: Dict[str, Any]) -> None:
         """Add a dictionary to the list only if 'name' and 'in' fields are unique."""
         if not any(h["name"] == new_header["name"] and h["in"] == new_header["in"] for h in headers_list):
             headers_list.append(new_header)
@@ -111,7 +113,7 @@ class OpenAPIParser:
         if "oneOf" in schema or "anyOf" in schema:
             return " | ".join([self._resolve_type(sub) for sub in schema.get("oneOf", []) + schema.get("anyOf", [])])
         if "not" in schema:
-            return f"Not[{self._resolve_type(schema['not'])}]"
+            return f"Not[{self._resolve_type(schema["not"])}]"
         return schema.get("type", "any")
 
     def _extract_refs(self, schema: Dict[str, Any]) -> List[str]:
@@ -130,12 +132,20 @@ class OpenAPIParser:
                     refs.extend(self._extract_refs(sub_schema))
         return refs
 
-    def _resolve_nested_types(self, schema: Dict[str, Any]) -> List[str]:
+    def _resolve_nested_types(self, schema: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
-        Recursively resolve nested types within a schema.
+        Recursively resolve nested types within a schema, including all properties and nested properties.
+        Handles $ref, allOf, oneOf, anyOf, not, and properties within objects and arrays.
+
+        Args:
+            schema: The OpenAPI schema to resolve
+
+        Returns:
+            List of resolved nested type schemas
         """
         nested_types = []
         if "type" in schema:
+            # self._traverse_dict(schema)
             nested_types.append(schema)
         if "$ref" in schema:
             ref_name = schema["$ref"].split("/")[-1]
@@ -147,7 +157,40 @@ class OpenAPIParser:
                     nested_types.extend(self._resolve_nested_types(sub_schema))
         return nested_types
 
+    def _traverse_dict(self, d: Dict[str, Any], resolve_ref = False):
+        """
+        Traverses a dictionary, resolving any '$ref' values.
+        :param d: The dictionary to traverse.
+        :param resolve_ref: A function that resolves '$ref' values.
+        """
+        for key, value in d.items():
+            if resolve_ref and key == "$ref" and isinstance(value, str):
+                resolved_value = self._resolve_nested_types({"$ref": value})
+                d[key] = resolved_value  # Update the dictionary with the resolved value
+            elif key in ["allOf", "oneOf", "anyOf", "not"] and not isinstance(value, str):
+                resolved_value = self._resolve_type(d)
+                d[key] = resolved_value  # Update the dictionary with the resolved value
+            elif isinstance(value, dict):
+                self._traverse_dict(value)
+            elif isinstance(value, list):
+                self._traverse_array(value)
+
+
+    def _traverse_array(self, arr: List[Any]):
+        """
+        Traverses an array (list), resolving any '$ref' values inside the array.
+        :param arr: The array (list) to traverse.
+        :param resolve_ref: A function that resolves '$ref' values.
+        """
+        for i, item in enumerate(arr):
+            if isinstance(item, dict):
+                self._traverse_dict(item)
+            elif isinstance(item, list):
+                self._traverse_array(item)
+
+
+
 if __name__ == "__main__":
     parser = OpenAPIParser("openapi.json")
-    operations = parser.parse() 
-    print('Path Operations:', json.dumps(operations.dict(), indent=2))
+    operations = parser.parse()
+    print("Path Operations:", json.dumps(operations.model_dump(), indent=2))
