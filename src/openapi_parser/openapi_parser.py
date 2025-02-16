@@ -56,24 +56,26 @@ class OpenAPIParser:
         """
         Extract and format parameter details.
         """
-        return [
-            Parameter(
-                name=param["name"],
-                in_location=param["in"],
-                required=param.get("required", False),
-                type=self._resolve_type(param.get("schema", {})),
-                description=param.get("description", "")
-            )
-            for param in parameters
-        ]
+        params = []
+        for param in parameters:
+            # "in" is a key word in Python so param_data had to be used
+            param_data = {
+                "name": param["name"],
+                "in": param["in"],
+                "required": param.get("required", False),
+                "type": self._resolve_type(param.get("schema", {})),
+                "description": param.get("description", "")
+            }
+            params.append(Parameter(**param_data))
+        return params
 
-    def _parse_request_body(self, request_body: Dict[str, Any]) -> RequestBody:
+    def _parse_request_body(self, request_body: Dict[str, Any]) -> Union[RequestBody, bool]:
         """
         Extract and format request body details.
         """
         if not request_body:
-            return RequestBody(type="any")
-            
+            return False
+
         content = request_body.get("content", {})
         json_schema = content.get("application/json", {}).get("schema", {})
         required = request_body.get("required")

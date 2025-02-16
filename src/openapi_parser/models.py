@@ -26,7 +26,7 @@ class Operation(BaseModel):
     summary: str = ""
     description: str = ""
     parameters: List[Parameter] = Field(default_factory=list)
-    request_body: RequestBody = Field(default_factory=RequestBody)
+    request_body: Union[RequestBody, bool] = Field(default_factory=False)
 
 class OpenAPIMetadata(BaseModel):
     """Represents the parsed OpenAPI metadata"""
