@@ -1,12 +1,13 @@
 import json
 from typing import Any, Dict, List, Optional, Union
 from .models import *
+import click
 
 class OpenAPIParser:
     """
     A parser to extract relevant API operation details from an OpenAPI specification.
     """
-    def __init__(self, openapi_path: str, tag: str = "", operationId: str = ""):
+    def __init__(self, openapi_path: str, tag: str = "", operation_id: str = ""):
         """
         Initialize the parser by loading the OpenAPI specification.
         """
@@ -15,7 +16,7 @@ class OpenAPIParser:
         self.paths = self.openapi_spec.get("paths", {})
         self.components = self.openapi_spec.get("components", {}).get("schemas", {})
         self.tag = tag
-        self.operationId = operationId
+        self.operation_id = operation_id
         self.openapi_path = openapi_path
 
     def parse(self) -> OpenAPIMetadata:
@@ -28,7 +29,7 @@ class OpenAPIParser:
             for method, details in methods.items():
                 if "operationId" not in details:
                     continue
-                if self.operationId != "" and self.operationId not in details.get("operationId", ""):
+                if self.operation_id != "" and self.operation_id not in details.get("operationId", ""):
                     continue
                 if self.tag != "" and self.tag not in details.get("tags", [""]):
                     continue
@@ -195,7 +196,15 @@ class OpenAPIParser:
             elif isinstance(item, list):
                 self._traverse_array(item)
 
-if __name__ == "__main__":
-    parser = OpenAPIParser("openapi.json", tag="", operationId="")
+@click.command()
+@click.option("--input", "input_file", default="openapi.json", type=click.Path(exists=True),
+              help="OpenAPI specification file (JSON or YAML)")
+@click.option("--tag", default="", type=str,)
+@click.option("--operation_id", default="", type=str,)
+def main(input_file, tag, operation_id):
+    parser = OpenAPIParser(input_file, tag=tag, operation_id=operation_id)
     operations = parser.parse()
     print("Path Operations:", json.dumps(operations.model_dump(), indent=2))
+
+if __name__ == "__main__":
+    main()
