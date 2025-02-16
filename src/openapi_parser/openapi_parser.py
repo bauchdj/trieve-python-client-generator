@@ -30,7 +30,16 @@ class OpenAPIParser:
                     self._add_unique(http_params, http_param.dict(by_alias=True))
                 operations.append(operation)
         headers = [Parameter(**http_param) for http_param in http_params if "header" in http_param["in"]]
-        return OpenAPIMetadata(operations=operations, headers=headers)
+        openapi = self.openapi_spec.get("openapi", "")
+        info = self.openapi_spec.get("info", {})
+        servers = info.get("servers", [])
+        return OpenAPIMetadata(
+            openapi=openapi, 
+            info=info, 
+            servers=servers, 
+            headers=headers,
+            operations=operations, 
+        )
 
     def _add_unique(self, headers_list: List[Dict[str, Any]], new_header: Dict[str, Any]) -> None:
         """Add a dictionary to the list only if 'name' and 'in' fields are unique."""

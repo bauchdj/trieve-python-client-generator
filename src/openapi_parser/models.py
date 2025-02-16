@@ -28,7 +28,25 @@ class Operation(BaseModel):
     parameters: List[Parameter] = Field(default_factory=list)
     request_body: Union[RequestBody, bool] = Field(default_factory=False)
 
+class Info(BaseModel):
+    """Represents the 'info' object in OpenAPI metadata"""
+    title: str
+    version: str
+    description: Optional[str] = ""
+    termsOfService: Optional[str] = None
+    contact: Optional[Dict[str, Any]] = None
+    license: Optional[Dict[str, Any]] = None
+
+class Server(BaseModel):
+    """Represents a server in OpenAPI metadata"""
+    url: str
+    description: Optional[str] = ""
+    variables: Optional[Dict[str, Dict[str, Any]]] = None
+
 class OpenAPIMetadata(BaseModel):
     """Represents the parsed OpenAPI metadata"""
+    openapi: str
+    info: Info
+    servers: List[Server]
     operations: List[Operation]
     headers: List[Parameter]
