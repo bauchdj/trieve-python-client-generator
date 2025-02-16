@@ -8,6 +8,7 @@ class Parameter(BaseModel):
     required: bool = False
     type: str
     description: str = ""
+    original_name: str = ""  # Store the original parameter name before cleaning
 
 class RequestBody(BaseModel):
     """Represents an OpenAPI request body"""
@@ -50,3 +51,4 @@ class OpenAPIMetadata(BaseModel):
     servers: List[Server]
     operations: List[Operation]
     headers: List[Parameter]
+    source_file: str = ""  # Path to the source OpenAPI file

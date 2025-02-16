@@ -1,12 +1,12 @@
 import json
 from typing import Any, Dict, List, Optional, Union
-from models import *
+from .models import *
 
 class OpenAPIParser:
     """
     A parser to extract relevant API operation details from an OpenAPI specification.
     """
-    def __init__(self, openapi_path: str):
+    def __init__(self, openapi_path: str, tag: str = "", operationId: str = ""):
         """
         Initialize the parser by loading the OpenAPI specification.
         """
@@ -14,6 +14,9 @@ class OpenAPIParser:
             self.openapi_spec = json.load(f)
         self.paths = self.openapi_spec.get("paths", {})
         self.components = self.openapi_spec.get("components", {}).get("schemas", {})
+        self.tag = tag
+        self.operationId = operationId
+        self.openapi_path = openapi_path
 
     def parse(self) -> OpenAPIMetadata:
         """
@@ -25,8 +28,10 @@ class OpenAPIParser:
             for method, details in methods.items():
                 if "operationId" not in details:
                     continue
-                # if "create_organization_api_key" not in details.get("operationId", ""):
-                #     continue
+                if self.operationId != "" and self.operationId not in details.get("operationId", ""):
+                    continue
+                if self.tag != "" and self.tag not in details.get("tags", [""]):
+                    continue
                 operation = self._parse_operation(path, method, details)
                 for http_param in operation.parameters:
                     self._add_unique_http_param(http_params, http_param.model_dump(by_alias=True))
@@ -41,6 +46,7 @@ class OpenAPIParser:
             servers=servers,
             headers=headers,
             operations=operations,
+            source_file=self.openapi_path
         )
 
     def _add_unique_http_param(self, headers_list: List[Dict[str, Any]], new_header: Dict[str, Any]) -> None:
@@ -75,7 +81,8 @@ class OpenAPIParser:
                 "in": param["in"],
                 "required": param.get("required", False),
                 "type": self._resolve_type(param.get("schema", {})),
-                "description": param.get("description", "")
+                "description": param.get("description", ""),
+                "original_name": param["name"],  # Store the original name before cleaning
             }
             params.append(Parameter(**param_data))
         return params
@@ -188,9 +195,7 @@ class OpenAPIParser:
             elif isinstance(item, list):
                 self._traverse_array(item)
 
-
-
 if __name__ == "__main__":
-    parser = OpenAPIParser("openapi.json")
+    parser = OpenAPIParser("openapi.json", tag="", operationId="")
     operations = parser.parse()
     print("Path Operations:", json.dumps(operations.model_dump(), indent=2))

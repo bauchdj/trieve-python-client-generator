@@ -1,0 +1,91 @@
+# {{ metadata.info.title }} Python SDK
+
+{{ metadata.info.description }}
+
+Version: {{ metadata.info.version }}
+
+## Installation
+
+```bash
+pip install {{ metadata.info.title.lower().replace(" ", "-") }}
+```
+
+## Usage
+
+First, initialize the client:
+
+```python
+from {{ metadata.info.title.lower().replace(" ", "_") }} import {{ metadata.info.title.replace(" ", "").replace("-", "") }}Client
+
+client = {{ metadata.info.title.replace(" ", "").replace("-", "") }}Client(
+    base_url="{{ metadata.servers[0].url }}",  # Optional, defaults to this URL
+    api_key="your_api_key",  # Optional
+    timeout=10.0,  # Optional, defaults to 10 seconds
+)
+```
+
+### Available Operations
+{% for tag, operations in operations_by_tag.items() %}
+#### {{ tag.title() }}
+{% for operation in operations %}
+##### `{{ operation.operationId }}`
+
+{{ operation.description }}
+
+```python
+{%- if operation.parameters or operation.request_body %}
+# Parameters
+{%- for param in operation.parameters %}
+{{ param.name }} = {{ "None" if not param.required else '"value"' if param.type == "str" else "123" if param.type == "int" else "True" if param.type == "bool" else "None" }}  # {{ param.description }}
+{%- endfor %}
+
+{%- if operation.request_body %}
+request_body = {}  # Add your request body here
+{%- endif %}
+
+# Make request
+response = client.{{ operation.operationId }}(
+    {%- for param in operation.parameters %}
+    {{ param.name }}={{ param.name }},
+    {%- endfor %}
+    {%- if operation.request_body %}
+    request_body=request_body,
+    {%- endif %}
+)
+{%- else %}
+# Make request
+response = client.{{ operation.operationId }}()
+{%- endif %}
+```
+{% endfor %}
+{% endfor %}
+
+## Middleware
+
+You can add middleware functions to be called before and after each request:
+
+```python
+def before_request(request):
+    print(f"About to make request: {request.method} {request.url}")
+
+def after_request(response):
+    print(f"Got response: {response.status_code}")
+
+client = {{ metadata.info.title.replace(" ", "").replace("-", "") }}Client(
+    before_request=before_request,
+    after_request=after_request,
+)
+```
+
+## Development
+
+1. Clone the repository
+2. Install dependencies: `pip install -r requirements.txt`
+3. Run tests: `pytest`
+
+## License
+{% if metadata.info.license %}
+{{ metadata.info.license.name }}
+{% else %}
+MIT License
+{% endif %}

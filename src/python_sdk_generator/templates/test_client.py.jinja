@@ -1,0 +1,62 @@
+import pytest
+from unittest.mock import Mock, patch
+import httpx
+from models.models import *
+from src.{{ tag }}.{{ tag }}_client import {{ class_name }}
+
+@pytest.fixture
+def client():
+    return {{ class_name }}(
+        base_url="{{ metadata.servers[0].url }}",
+        api_key="test_api_key"
+    )
+
+{% for operation in operations %}
+def test_{{ operation.operationId }}(client):
+    """Test {{ operation.operationId }} operation"""
+    # Mock response
+    mock_response = Mock(spec=httpx.Response)
+    mock_response.json.return_value = {}
+    mock_response.raise_for_status.return_value = None
+
+    with patch.object(httpx.Client, "send", return_value=mock_response) as mock_send:
+        {% if operation.parameters or operation.request_body %}
+        # Test parameters
+        {% for param in operation.parameters %}
+        {% if param.type == "str" %}
+        {{ param.name }} = "test_{{ param.name }}"
+        {% elif param.type == "int" %}
+        {{ param.name }} = 123
+        {% elif param.type == "bool" %}
+        {{ param.name }} = True
+        {% else %}
+        {{ param.name }} = None
+        {% endif %}
+        {% endfor %}
+
+        {% if operation.request_body %}
+        # Test request body
+        request_body = {}  # TODO: Add example request body
+        {% endif %}
+
+        # Make request
+        response = client.{{ operation.operationId }}(
+            {% for param in operation.parameters %}
+            {{ param.name }}={{ param.name }},
+            {% endfor %}
+            {% if operation.request_body %}
+            request_body=request_body,
+            {% endif %}
+        )
+        {% else %}
+        # Make request
+        response = client.{{ operation.operationId }}()
+        {% endif %}
+
+        # Verify request
+        assert mock_send.called
+        request = mock_send.call_args[0][0]
+        assert request.method == "{{ operation.method }}"
+        assert request.url.path == "{{ operation.path }}"
+
+{% endfor %}

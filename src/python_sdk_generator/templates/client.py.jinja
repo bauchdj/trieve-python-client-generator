@@ -1,0 +1,79 @@
+from typing import Any, Dict, List, Optional, Union
+from src.{{ metadata.info.title.lower().replace(" ", "_") }}_client import {{ metadata.info.title.replace(" ", "").replace("-", "") }}Client
+from models.models import *
+
+class {{ class_name }}({{ metadata.info.title.replace(" ", "").replace("-", "") }}Client):
+    """{{ metadata.info.description }}"""
+{% for operation in operations %}
+    def {{ operation.operationId }}(
+        self,
+        {%- set required_params = operation.parameters | selectattr("required", "equalto", true) | list %}
+        {%- set optional_params = operation.parameters | selectattr("required", "equalto", false) | list %}
+        {%- for param in required_params %}
+        {{ param.name }}: {{ param.type }},
+        {%- endfor %}
+        {%- if operation.request_body and operation.request_body.required %}
+        request_body: {{ operation.request_body.type }},
+        {%- endif %}
+        {%- for param in optional_params %}
+        {{ param.name }}: {{ param.type }} = None,
+        {%- endfor %}
+        {%- if operation.request_body and not operation.request_body.required %}
+        request_body: Optional[{{ operation.request_body.type }}] = None,
+        {%- endif %}
+    ) -> Any:
+        """{{ operation.description }}
+        {%- if operation.parameters or operation.request_body %}
+
+        Args:
+            {%- for param in required_params %}
+            {{ param.name }}: {{ param.description }}
+            {%- endfor %}
+            {%- if operation.request_body and operation.request_body.required %}
+            request_body: {{ operation.request_body.description if operation.request_body.description else "Request body" }}
+            {%- endif %}
+            {%- for param in optional_params %}
+            {{ param.name }}: {{ param.description }}
+            {%- endfor %}
+            {%- if operation.request_body and not operation.request_body.required %}
+            request_body: {{ operation.request_body.description if operation.request_body.description else "Request body" }}
+            {%- endif %}
+        {%- endif %}
+
+        Returns:
+            Response data
+        """
+        path = "{{ operation.path }}"
+        {%- if operation.parameters %}
+        params = {}
+        headers = {}
+        {%- for param in operation.parameters %}
+        {%- if param.in_location == "query" %}
+        if {{ param.name }} is not None:
+            params["{{ param.original_name }}"] = {{ param.name }}
+        {%- endif %}
+        {%- if param.in_location == "header" %}
+        if {{ param.name }} is not None:
+            headers["{{ param.original_name }}"] = {{ param.name }}
+        {%- endif %}
+        {%- endfor %}
+        {%- else %}
+        params = None
+        headers = None
+        {%- endif %}
+
+        {%- if operation.request_body %}
+        json_data = request_body.model_dump() if request_body else None
+        {%- else %}
+        json_data = None
+        {%- endif %}
+
+        response = self._make_request(
+            method="{{ operation.method }}",
+            path=path,
+            params=params,
+            headers=headers,
+            json_data=json_data,
+        )
+        return response.json()
+{% endfor %}
