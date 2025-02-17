@@ -58,11 +58,12 @@ class {{ class_name }} ({{ metadata.info.title.replace(" ", "").replace("-", "")
         {%- if operation.request_body and operation.request_body.length_nested_json_schemas == 1 and operation.request_body.nested_json_schemas[0].type == "object" %}
         {%- set schema = operation.request_body.nested_json_schemas[0] %}
         {%- set required_props = schema.get("required", []) %}
+        {%- set http_param_names = operation.parameters | map(attribute="name") | list %}
         {%- for param in required_params %}
         {{ param.name }}: {{ format_type(param.type) }},
         {%- endfor %}
         {%- for prop_name, prop in schema.properties.items() %}
-        {%- if prop_name in required_props %}
+        {%- if prop_name in required_props and prop_name not in http_param_names %}
         {{ prop_name }}: {{ format_type(prop) }},
         {%- endif %}
         {%- endfor %}
@@ -70,7 +71,7 @@ class {{ class_name }} ({{ metadata.info.title.replace(" ", "").replace("-", "")
         {{ param.name }}: Optional[{{ format_type(param.type) }}] = None,
         {%- endfor %}
         {%- for prop_name, prop in schema.properties.items() %}
-        {%- if prop_name not in required_props %}
+        {%- if prop_name not in required_props and prop_name not in http_param_names %}
         {{ prop_name }}: Optional[{{ format_type(prop) }}] = None,
         {%- endif %}
         {%- endfor %}
@@ -100,7 +101,7 @@ class {{ class_name }} ({{ metadata.info.title.replace(" ", "").replace("-", "")
             {%- set schema = operation.request_body.nested_json_schemas[0] %}
             {%- set required_props = schema.get("required", []) %}
             {%- for prop_name, prop in schema.properties.items() %}
-            {%- if prop_name in required_props %}
+            {%- if prop_name in required_props and prop_name not in http_param_names %}
             {{ prop_name }}: {{ prop.description if prop.description else "No description provided" }}
             {%- endif %}
             {%- endfor %}
@@ -108,7 +109,7 @@ class {{ class_name }} ({{ metadata.info.title.replace(" ", "").replace("-", "")
             {{ param.name }}: {{ param.description }}
             {%- endfor %}
             {%- for prop_name, prop in schema.properties.items() %}
-            {%- if prop_name not in required_props %}
+            {%- if prop_name not in required_props and prop_name not in http_param_names %}
             {{ prop_name }}: {{ prop.description if prop.description else "No description provided" }}
             {%- endif %}
             {%- endfor %}
@@ -128,7 +129,7 @@ class {{ class_name }} ({{ metadata.info.title.replace(" ", "").replace("-", "")
         Returns:
             Response data
         """
-        path = "{{ operation.path }}"
+        path = f"{{ operation.path }}"
         {%- if operation.parameters %}
         params = {}
         headers = {}
