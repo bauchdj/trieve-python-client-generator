@@ -29,7 +29,7 @@ class OpenAPIParser:
             for method, details in methods.items():
                 if "operationId" not in details:
                     continue
-                if self.operation_id != "" and self.operation_id not in details.get("operationId", ""):
+                if self.operation_id != "" and self.operation_id != details.get("operationId", ""):
                     continue
                 if self.tag != "" and self.tag not in details.get("tags", [""]):
                     continue
@@ -88,7 +88,7 @@ class OpenAPIParser:
             params.append(Parameter(**param_data))
         return params
 
-    def _parse_request_body(self, request_body: Dict[str, Any]) -> Union[RequestBody, bool]:
+    def _parse_request_body(self, request_body: Dict[str, Any]) -> Union[SchemaMetadata, bool]:
         """
         Extract and format request body details.
         """
@@ -97,13 +97,21 @@ class OpenAPIParser:
 
         content = request_body.get("content", {})
         json_schema = content.get("application/json", {}).get("schema", {})
-        required = request_body.get("required")
-        json_schema_type = self._resolve_type(json_schema)
-        nested_json_schema_refs = self._extract_refs(json_schema)
-        nested_json_schemas = self._resolve_nested_types(json_schema)
+        return self._schema_metadata(json_schema)
 
-        return RequestBody(
+    def _schema_metadata(self, schema: Dict[str, Any]) -> SchemaMetadata:
+        """
+        Extract relevant metadata from a given schema.
+        """
+        required = schema.get("required")
+        nullable = schema.get("nullable")
+        json_schema_type = self._resolve_type(schema)
+        nested_json_schema_refs = self._extract_refs(schema)
+        nested_json_schemas = self._resolve_nested_types(schema)
+
+        return SchemaMetadata(
             required=required,
+            nullable=nullable,
             type=json_schema_type,
             nested_json_schema_refs=nested_json_schema_refs,
             nested_json_schemas=nested_json_schemas,
@@ -153,7 +161,7 @@ class OpenAPIParser:
         """
         nested_types = []
         if "type" in schema:
-            # self._traverse_dict(schema)
+            self._traverse_dict(schema)
             nested_types.append(schema)
         if "$ref" in schema:
             ref_name = schema["$ref"].split("/")[-1]
@@ -165,26 +173,23 @@ class OpenAPIParser:
                     nested_types.extend(self._resolve_nested_types(sub_schema))
         return nested_types
 
-    def _traverse_dict(self, d: Dict[str, Any], resolve_ref = False):
+    def _traverse_dict(self, d: Dict[str, Any], key: Union[str, int] = None, parent: Union[Dict[str, Any], List[Any]] = None):
         """
         Traverses a dictionary, resolving any '$ref' values.
         :param d: The dictionary to traverse.
         :param resolve_ref: A function that resolves '$ref' values.
         """
-        for key, value in d.items():
-            if resolve_ref and key == "$ref" and isinstance(value, str):
-                resolved_value = self._resolve_nested_types({"$ref": value})
-                d[key] = resolved_value  # Update the dictionary with the resolved value
-            elif key in ["allOf", "oneOf", "anyOf", "not"] and not isinstance(value, str):
-                resolved_value = self._resolve_type(d)
-                d[key] = resolved_value  # Update the dictionary with the resolved value
+        for k, value in d.items():
+            if k in ["$ref", "allOf", "oneOf", "anyOf", "not"]:
+                schema_metadata = self._schema_metadata(d)
+                parent[key] = schema_metadata
             elif isinstance(value, dict):
-                self._traverse_dict(value)
+                self._traverse_dict(d=value, key=k, parent=d)
             elif isinstance(value, list):
-                self._traverse_array(value)
+                self._traverse_array(arr=value, key=k, parent=d)
 
 
-    def _traverse_array(self, arr: List[Any]):
+    def _traverse_array(self, arr: List[Any], key: Union[str, int] = None, parent: Union[Dict[str, Any], List[Any]] = None):
         """
         Traverses an array (list), resolving any '$ref' values inside the array.
         :param arr: The array (list) to traverse.
@@ -192,9 +197,9 @@ class OpenAPIParser:
         """
         for i, item in enumerate(arr):
             if isinstance(item, dict):
-                self._traverse_dict(item)
+                self._traverse_dict(d=item, key=i, parent=arr)
             elif isinstance(item, list):
-                self._traverse_array(item)
+                self._traverse_array(arr=item, key=i, parent=arr)
 
 @click.command()
 @click.option("--input", "input_file", default="openapi.json", type=click.Path(exists=True),

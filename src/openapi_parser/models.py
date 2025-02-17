@@ -10,9 +10,10 @@ class Parameter(BaseModel):
     description: str = ""
     original_name: str = ""  # Store the original parameter name before cleaning
 
-class RequestBody(BaseModel):
+class SchemaMetadata(BaseModel):
     """Represents an OpenAPI request body"""
     required: Optional[bool] = None
+    nullable: Optional[bool] = None
     type: str
     nested_json_schema_refs: List[str] = Field(default_factory=list)
     nested_json_schemas: List[Dict[str, Any]] = Field(default_factory=list)
@@ -27,7 +28,7 @@ class Operation(BaseModel):
     summary: str = ""
     description: str = ""
     parameters: List[Parameter] = Field(default_factory=list)
-    request_body: Union[RequestBody, bool] = Field(default_factory=False)
+    request_body: Union[SchemaMetadata, bool] = Field(default_factory=False)
 
 class Info(BaseModel):
     """Represents the 'info' object in OpenAPI metadata"""

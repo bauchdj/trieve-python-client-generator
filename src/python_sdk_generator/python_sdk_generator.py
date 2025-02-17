@@ -7,7 +7,7 @@ import click
 from jinja2 import Environment, FileSystemLoader
 
 from ..openapi_parser.openapi_parser import OpenAPIParser
-from ..openapi_parser.models import OpenAPIMetadata, Operation, RequestBody
+from ..openapi_parser.models import OpenAPIMetadata, Operation, SchemaMetadata
 
 class SDKGenerator:
     def __init__(
@@ -116,19 +116,25 @@ class SDKGenerator:
         template = self.env.get_template("client.py.jinja")
         class_name = self._clean_name(tag) + "Client"
         # Clean parameter names and types in operations
+
         for op in operations:
             for param in op.parameters:
                 # Add original name for query parameters
                 param.original_name = param.name
                 param.name = self._clean_parameter_name(param.name)
                 param.type = self._clean_type_name(param.type)
-            if op.request_body and isinstance(op.request_body, RequestBody):
+            if op.request_body and isinstance(op.request_body, SchemaMetadata):
                 op.request_body.type = self._clean_type_name(op.request_body.type)
+
+        # removes nested models for jinja templating. SchemaMetadata model is causing 'is mapping' to be False when it should be True in jinja
+        operations = [op.model_dump() for op in operations]
+        metadata = self.metadata.model_dump()
+
         return template.render(
             tag=tag,
             operations=operations,
             class_name=class_name,
-            metadata=self.metadata
+            metadata=metadata
         )
 
     def _generate_base_client(self) -> str:
@@ -220,6 +226,8 @@ def main(input_file: str, sdk_output: str, models_output: Optional[str], tests: 
     # Generate SDK
     generator = SDKGenerator(metadata, sdk_dir, models_dir, tests)
     generator.generate()
+
+    print(f"Successfully generated SDK in: {sdk_dir}")
 
 if __name__ == "__main__":
     main()

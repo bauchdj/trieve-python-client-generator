@@ -4,7 +4,9 @@ from models.models import *
 
 {%- macro format_type(type_info) -%}
 {%- if type_info is mapping -%}
-    {%- if type_info.allOf is defined -%}
+    {%- if type_info.type and type_info.type != "object" and type_info.type != "array" -%}
+        {{- type_info.type | replace("string", "str") | replace("integer", "int") | replace("number", "float") | replace("boolean", "bool") | default("Any") -}}
+    {%- elif type_info.allOf is defined -%}
         {%- for item in type_info.allOf -%}
             {%- if item is mapping and item.get("$ref") -%}
                 {{- item["$ref"].split("/")[-1] -}}{% if not loop.last %} & {% endif -%}
@@ -36,8 +38,6 @@ from models.models import *
         {%- else -%}
             List[Any]
         {%- endif -%}
-    {%- elif type_info.type -%}
-        {{- type_info.type | replace("string", "str") | replace("integer", "int") | replace("number", "float") | replace("boolean", "bool") | default("Any") -}}
     {%- elif type_info.get("$ref") -%}
         {{- type_info["$ref"].split("/")[-1] -}}
     {%- else -%}
@@ -57,7 +57,10 @@ class {{ class_name }} ({{ metadata.info.title.replace(" ", "").replace("-", "")
         {%- set optional_params = operation.parameters | selectattr("required", "equalto", false) | list %}
         {%- if operation.request_body and operation.request_body.length_nested_json_schemas == 1 and operation.request_body.nested_json_schemas[0].type == "object" %}
         {%- set schema = operation.request_body.nested_json_schemas[0] %}
-        {%- set required_props = schema.get("required", []) %}
+        {%- set required_props = schema.get("required", []) -%}
+        {%- for prop_name, prop in schema.properties.items() if not prop.nullable -%}
+            {%- set required_props = required_props + [prop_name] -%}
+        {%- endfor -%}
         {%- set http_param_names = operation.parameters | map(attribute="name") | list %}
         {%- for param in required_params %}
         {{ param.name }}: {{ format_type(param.type) }},
@@ -99,10 +102,18 @@ class {{ class_name }} ({{ metadata.info.title.replace(" ", "").replace("-", "")
             {%- endfor %}
             {%- if operation.request_body and operation.request_body.length_nested_json_schemas == 1 and operation.request_body.nested_json_schemas[0].type == "object" %}
             {%- set schema = operation.request_body.nested_json_schemas[0] %}
-            {%- set required_props = schema.get("required", []) %}
+            {%- set required_props = schema.get("required", []) -%}
+            {%- for prop_name, prop in schema.properties.items() if not prop.nullable -%}
+                {%- set required_props = required_props + [prop_name] -%}
+            {%- endfor -%}
             {%- for prop_name, prop in schema.properties.items() %}
             {%- if prop_name in required_props and prop_name not in http_param_names %}
-            {{ prop_name }}: {{ prop.description if prop.description else "No description provided" }}
+            {%- if prop and prop.length_nested_json_schemas == 1 and prop.nested_json_schemas[0].type %}
+            {%- set schema = prop.nested_json_schemas[0] %}
+            {{ prop_name }}: {{ schema.description or prop.description or "No description provided" }}
+            {%- else %}
+            {{ prop_name }}: {{ prop.description or "No description provided" }}
+            {%- endif %}
             {%- endif %}
             {%- endfor %}
             {%- for param in optional_params %}
@@ -110,7 +121,12 @@ class {{ class_name }} ({{ metadata.info.title.replace(" ", "").replace("-", "")
             {%- endfor %}
             {%- for prop_name, prop in schema.properties.items() %}
             {%- if prop_name not in required_props and prop_name not in http_param_names %}
-            {{ prop_name }}: {{ prop.description if prop.description else "No description provided" }}
+            {%- if prop and prop.length_nested_json_schemas == 1 and prop.nested_json_schemas[0].type %}
+            {%- set schema = prop.nested_json_schemas[0] %}
+            {{ prop_name }}: {{ schema.description or prop.description or "No description provided" }}
+            {%- else %}
+            {{ prop_name }}: {{ prop.description or "No description provided" }}
+            {%- endif %}
             {%- endif %}
             {%- endfor %}
             {%- else %}
