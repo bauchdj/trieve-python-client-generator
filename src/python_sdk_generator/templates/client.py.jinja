@@ -2,24 +2,91 @@ from typing import Any, Dict, List, Optional, Union
 from src.{{ metadata.info.title.lower().replace(" ", "_") }}_client import {{ metadata.info.title.replace(" ", "").replace("-", "") }}Client
 from models.models import *
 
-class {{ class_name }}({{ metadata.info.title.replace(" ", "").replace("-", "") }}Client):
+{%- macro format_type(type_info) -%}
+{%- if type_info is mapping -%}
+    {%- if type_info.allOf is defined -%}
+        {%- for item in type_info.allOf -%}
+            {%- if item is mapping and item.get("$ref") -%}
+                {{- item["$ref"].split("/")[-1] -}}{% if not loop.last %} & {% endif -%}
+            {%- else -%}
+                {{- format_type(item) -}}{% if not loop.last %} & {% endif -%}
+            {%- endif -%}
+        {%- endfor -%}
+    {%- elif type_info.oneOf is defined -%}
+        Union[{% for item in type_info.oneOf -%}
+            {%- if item is mapping and item.get("$ref") -%}
+                {{- item["$ref"].split("/")[-1] -}}{% if not loop.last %}, {% endif -%}
+            {%- else -%}
+                {{- format_type(item) -}}{% if not loop.last %}, {% endif -%}
+            {%- endif -%}
+        {%- endfor %}]
+    {%- elif type_info.anyOf is defined -%}
+        Union[{% for item in type_info.anyOf -%}
+            {%- if item is mapping and item.get("$ref") -%}
+                {{- item["$ref"].split("/")[-1] -}}{% if not loop.last %}, {% endif -%}
+            {%- else -%}
+                {{- format_type(item) -}}{% if not loop.last %}, {% endif -%}
+            {%- endif -%}
+        {%- endfor %}]
+    {%- elif type_info.not is defined -%}
+        Any
+    {%- elif type_info.type == "array" -%}
+        {%- if type_info.get("items") -%}
+            List[{{- format_type(type_info.get("items")) -}}]
+        {%- else -%}
+            List[Any]
+        {%- endif -%}
+    {%- elif type_info.type -%}
+        {{- type_info.type | replace("string", "str") | replace("integer", "int") | replace("number", "float") | replace("boolean", "bool") | default("Any") -}}
+    {%- elif type_info.get("$ref") -%}
+        {{- type_info["$ref"].split("/")[-1] -}}
+    {%- else -%}
+        Any
+    {%- endif -%}
+{%- else -%}
+    {{- type_info | replace("string", "str") | replace("integer", "int") | replace("number", "float") | replace("boolean", "bool") | default("Any") -}}
+{%- endif -%}
+{%- endmacro %}
+
+class {{ class_name }} ({{ metadata.info.title.replace(" ", "").replace("-", "") }}Client):
     """{{ metadata.info.description }}"""
 {% for operation in operations %}
     def {{ operation.operationId }}(
         self,
         {%- set required_params = operation.parameters | selectattr("required", "equalto", true) | list %}
         {%- set optional_params = operation.parameters | selectattr("required", "equalto", false) | list %}
+        {%- if operation.request_body and operation.request_body.length_nested_json_schemas == 1 and operation.request_body.nested_json_schemas[0].type == "object" %}
+        {%- set schema = operation.request_body.nested_json_schemas[0] %}
+        {%- set required_props = schema.get("required", []) %}
         {%- for param in required_params %}
-        {{ param.name }}: {{ param.type }},
+        {{ param.name }}: {{ format_type(param.type) }},
+        {%- endfor %}
+        {%- for prop_name, prop in schema.properties.items() %}
+        {%- if prop_name in required_props %}
+        {{ prop_name }}: {{ format_type(prop) }},
+        {%- endif %}
+        {%- endfor %}
+        {%- for param in optional_params %}
+        {{ param.name }}: Optional[{{ format_type(param.type) }}] = None,
+        {%- endfor %}
+        {%- for prop_name, prop in schema.properties.items() %}
+        {%- if prop_name not in required_props %}
+        {{ prop_name }}: Optional[{{ format_type(prop) }}] = None,
+        {%- endif %}
+        {%- endfor %}
+        {%- else %}
+        {%- for param in required_params %}
+        {{ param.name }}: {{ format_type(param.type) }},
         {%- endfor %}
         {%- if operation.request_body and operation.request_body.required %}
-        request_body: {{ operation.request_body.type }},
+        request_body: {{ format_type(operation.request_body.type) }},
         {%- endif %}
         {%- for param in optional_params %}
-        {{ param.name }}: {{ param.type }} = None,
+        {{ param.name }}: Optional[{{ format_type(param.type) }}] = None,
         {%- endfor %}
         {%- if operation.request_body and not operation.request_body.required %}
-        request_body: Optional[{{ operation.request_body.type }}] = None,
+        request_body: Optional[{{ format_type(operation.request_body.type) }}] = None,
+        {%- endif %}
         {%- endif %}
     ) -> Any:
         """{{ operation.description }}
@@ -29,6 +96,23 @@ class {{ class_name }}({{ metadata.info.title.replace(" ", "").replace("-", "") 
             {%- for param in required_params %}
             {{ param.name }}: {{ param.description }}
             {%- endfor %}
+            {%- if operation.request_body and operation.request_body.length_nested_json_schemas == 1 and operation.request_body.nested_json_schemas[0].type == "object" %}
+            {%- set schema = operation.request_body.nested_json_schemas[0] %}
+            {%- set required_props = schema.get("required", []) %}
+            {%- for prop_name, prop in schema.properties.items() %}
+            {%- if prop_name in required_props %}
+            {{ prop_name }}: {{ prop.description if prop.description else "No description provided" }}
+            {%- endif %}
+            {%- endfor %}
+            {%- for param in optional_params %}
+            {{ param.name }}: {{ param.description }}
+            {%- endfor %}
+            {%- for prop_name, prop in schema.properties.items() %}
+            {%- if prop_name not in required_props %}
+            {{ prop_name }}: {{ prop.description if prop.description else "No description provided" }}
+            {%- endif %}
+            {%- endfor %}
+            {%- else %}
             {%- if operation.request_body and operation.request_body.required %}
             request_body: {{ operation.request_body.description if operation.request_body.description else "Request body" }}
             {%- endif %}
@@ -37,6 +121,7 @@ class {{ class_name }}({{ metadata.info.title.replace(" ", "").replace("-", "") 
             {%- endfor %}
             {%- if operation.request_body and not operation.request_body.required %}
             request_body: {{ operation.request_body.description if operation.request_body.description else "Request body" }}
+            {%- endif %}
             {%- endif %}
         {%- endif %}
 
@@ -63,7 +148,17 @@ class {{ class_name }}({{ metadata.info.title.replace(" ", "").replace("-", "") 
         {%- endif %}
 
         {%- if operation.request_body %}
+        {%- if operation.request_body.length_nested_json_schemas == 1 and operation.request_body.nested_json_schemas[0].type == "object" %}
+        {%- set schema = operation.request_body.nested_json_schemas[0] %}
+        json_data = {
+            {%- for prop_name in schema.properties %}
+            "{{ prop_name }}": {{ prop_name }} if {{ prop_name }} is not None else None,
+            {%- endfor %}
+        }
+        json_data = {k: v for k, v in json_data.items() if v is not None}
+        {%- else %}
         json_data = request_body.model_dump() if request_body else None
+        {%- endif %}
         {%- else %}
         json_data = None
         {%- endif %}
