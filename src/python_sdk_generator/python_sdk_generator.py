@@ -118,10 +118,10 @@ class SDKGenerator:
         # Clean parameter names and types in operations
         for op in operations:
             for param in op.parameters:
-                param.name = self._clean_parameter_name(param.name)
-                param.type = self._clean_type_name(param.type)
                 # Add original name for query parameters
                 param.original_name = param.name
+                param.name = self._clean_parameter_name(param.name)
+                param.type = self._clean_type_name(param.type)
             if op.request_body and isinstance(op.request_body, RequestBody):
                 op.request_body.type = self._clean_type_name(op.request_body.type)
         return template.render(
