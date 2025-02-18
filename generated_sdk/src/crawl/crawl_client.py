@@ -11,7 +11,8 @@ class CrawlClient (TrieveAPIClient):
         page: Optional[int] = None,
         limit: Optional[int] = None,
     ) -> Any:
-        """This endpoint is used to get all crawl requests for a dataset.
+        """
+        This endpoint is used to get all crawl requests for a dataset.
 
         Args:
             tr_dataset: The dataset id to use for the request
@@ -46,7 +47,8 @@ class CrawlClient (TrieveAPIClient):
         tr_dataset: str,
         crawl_options: CrawlOptions,
     ) -> Any:
-        """This endpoint is used to create a new crawl request for a dataset. The request payload should contain the crawl options to use for the crawl.
+        """
+        This endpoint is used to create a new crawl request for a dataset. The request payload should contain the crawl options to use for the crawl.
 
         Args:
             tr_dataset: The dataset id to use for the request
@@ -80,7 +82,8 @@ class CrawlClient (TrieveAPIClient):
         crawl_id: str,
         crawl_options: CrawlOptions,
     ) -> Any:
-        """This endpoint is used to update an existing crawl request for a dataset. The request payload should contain the crawl id and the crawl options to update for the crawl.
+        """
+        This endpoint is used to update an existing crawl request for a dataset. The request payload should contain the crawl id and the crawl options to update for the crawl.
 
         Args:
             tr_dataset: The dataset id to use for the request
@@ -115,7 +118,8 @@ class CrawlClient (TrieveAPIClient):
         tr_dataset: str,
         crawl_id: str,
     ) -> Any:
-        """This endpoint is used to delete an existing crawl request for a dataset. The request payload should contain the crawl id to delete.
+        """
+        This endpoint is used to delete an existing crawl request for a dataset. The request payload should contain the crawl id to delete.
 
         Args:
             tr_dataset: The dataset id to use for the request

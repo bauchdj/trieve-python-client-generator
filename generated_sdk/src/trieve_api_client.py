@@ -11,7 +11,9 @@ class TrieveAPIClient:
         before_request: Optional[Callable[[httpx.Request], None]] = None,
         after_request: Optional[Callable[[httpx.Response], None]] = None,
     ):
-        """Initialize the base client.
+        """
+        Trieve API
+        Trieve OpenAPI Specification. This document describes all of the operations available through the Trieve API.
 
         Args:
             base_url: The base URL for API requests

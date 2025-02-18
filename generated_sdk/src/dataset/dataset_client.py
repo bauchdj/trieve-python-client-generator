@@ -12,7 +12,8 @@ class DatasetClient (TrieveAPIClient):
         server_configuration: Optional[DatasetConfigurationDTO] = None,
         tracking_id: Optional[str] = None,
     ) -> Any:
-        """Dataset will be created in the org specified via the TR-Organization header. Auth'ed user must be an owner of the organization to create a dataset.
+        """
+        Dataset will be created in the org specified via the TR-Organization header. Auth'ed user must be an owner of the organization to create a dataset.
 
         Args:
             tr_organization: The organization id to use for the request
@@ -53,7 +54,8 @@ class DatasetClient (TrieveAPIClient):
         server_configuration: Optional[DatasetConfigurationDTO] = None,
         tracking_id: Optional[str] = None,
     ) -> Any:
-        """One of id or tracking_id must be provided. The auth'ed user must be an owner of the organization to update a dataset.
+        """
+        One of id or tracking_id must be provided. The auth'ed user must be an owner of the organization to update a dataset.
 
         Args:
             tr_organization: The organization id to use for the request
@@ -95,7 +97,8 @@ class DatasetClient (TrieveAPIClient):
         datasets: List[CreateBatchDataset],
         upsert: Optional[bool] = None,
     ) -> Any:
-        """Datasets will be created in the org specified via the TR-Organization header. Auth'ed user must be an owner of the organization to create datasets. If a tracking_id is ignored due to it already existing on the org, the response will not contain a dataset with that tracking_id and it can be assumed that a dataset with the missing tracking_id already exists.
+        """
+        Datasets will be created in the org specified via the TR-Organization header. Auth'ed user must be an owner of the organization to create datasets. If a tracking_id is ignored due to it already existing on the org, the response will not contain a dataset with that tracking_id and it can be assumed that a dataset with the missing tracking_id already exists.
 
         Args:
             tr_organization: The organization id to use for the request
@@ -130,7 +133,8 @@ class DatasetClient (TrieveAPIClient):
         tr_dataset: str,
         dataset_id: str,
     ) -> Any:
-        """Removes all chunks, files, and groups from the dataset while retaining the analytics and dataset itself. The auth'ed user must be an owner of the organization to clear a dataset.
+        """
+        Removes all chunks, files, and groups from the dataset while retaining the analytics and dataset itself. The auth'ed user must be an owner of the organization to clear a dataset.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -162,7 +166,8 @@ class DatasetClient (TrieveAPIClient):
         page: Optional[int] = None,
         page_size: Optional[int] = None,
     ) -> Any:
-        """Get events for the dataset specified by the TR-Dataset header.
+        """
+        Get events for the dataset specified by the TR-Dataset header.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -200,7 +205,8 @@ class DatasetClient (TrieveAPIClient):
         page: Optional[int] = None,
         page_size: Optional[int] = None,
     ) -> Any:
-        """Scroll through all tags in the dataset and get the number of chunks in the dataset with that tag plus the total number of unique tags for the whole datset.
+        """
+        Scroll through all tags in the dataset and get the number of chunks in the dataset with that tag plus the total number of unique tags for the whole datset.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -237,7 +243,8 @@ class DatasetClient (TrieveAPIClient):
         limit: Optional[int] = None,
         offset: Optional[int] = None,
     ) -> Any:
-        """Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_organization: The organization id to use for the request
@@ -272,7 +279,8 @@ class DatasetClient (TrieveAPIClient):
         self,
         tr_dataset: str,
     ) -> Any:
-        """Returns the root URL for your pagefind index, will error if pagefind is not enabled
+        """
+        Returns the root URL for your pagefind index, will error if pagefind is not enabled
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -300,7 +308,8 @@ class DatasetClient (TrieveAPIClient):
         self,
         tr_dataset: str,
     ) -> Any:
-        """Uses pagefind to index the dataset and store the result into a CDN for retrieval. The auth'ed
+        """
+        Uses pagefind to index the dataset and store the result into a CDN for retrieval. The auth'ed
 user must be an admin of the organization to create a pagefind index for a dataset.
 
         Args:
@@ -330,7 +339,8 @@ user must be an admin of the organization to create a pagefind index for a datas
         tr_organization: str,
         tracking_id: str,
     ) -> Any:
-        """Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_organization: The organization id to use for the request
@@ -360,7 +370,8 @@ user must be an admin of the organization to create a pagefind index for a datas
         tr_dataset: str,
         tracking_id: str,
     ) -> Any:
-        """Auth'ed user must be an owner of the organization to delete a dataset.
+        """
+        Auth'ed user must be an owner of the organization to delete a dataset.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -390,7 +401,8 @@ user must be an admin of the organization to create a pagefind index for a datas
         tr_dataset: str,
         dataset_id: str,
     ) -> Any:
-        """Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -420,7 +432,8 @@ user must be an admin of the organization to create a pagefind index for a datas
         tr_dataset: str,
         dataset_id: str,
     ) -> Any:
-        """Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -450,7 +463,8 @@ user must be an admin of the organization to create a pagefind index for a datas
         tr_dataset: str,
         dataset_id: str,
     ) -> Any:
-        """Auth'ed user must be an owner of the organization to delete a dataset.
+        """
+        Auth'ed user must be an owner of the organization to delete a dataset.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -483,7 +497,8 @@ user must be an admin of the organization to create a pagefind index for a datas
         model: Optional[str] = None,
         tag_enum: Optional[List[str]] = None,
     ) -> Any:
-        """This endpoint is used to create a new ETL job for a dataset.
+        """
+        This endpoint is used to create a new ETL job for a dataset.
 
         Args:
             tr_dataset: The dataset id to use for the request

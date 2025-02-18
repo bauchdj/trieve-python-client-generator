@@ -9,7 +9,8 @@ class StripeClient (TrieveAPIClient):
         self,
         organization_id: str,
     ) -> Any:
-        """Create a checkout session (setup)
+        """
+        Create a checkout session (setup)
 
         Args:
             organization_id: The id of the organization to create setup checkout session for.
@@ -35,7 +36,8 @@ class StripeClient (TrieveAPIClient):
         self,
         organization_id: str,
     ) -> Any:
-        """Get a list of all invoices
+        """
+        Get a list of all invoices
 
         Args:
             organization_id: The id of the organization to get invoices for.
@@ -62,7 +64,8 @@ class StripeClient (TrieveAPIClient):
         plan_id: str,
         organization_id: str,
     ) -> Any:
-        """Get a 303 SeeOther redirect link to the stripe checkout page for the plan and organization
+        """
+        Get a 303 SeeOther redirect link to the stripe checkout page for the plan and organization
 
         Args:
             plan_id: id of the plan you want to subscribe to
@@ -88,7 +91,8 @@ class StripeClient (TrieveAPIClient):
     def get_all_plans(
         self,
     ) -> Any:
-        """Get a list of all plans
+        """
+        Get a list of all plans
 
         Returns:
             Response data
@@ -112,7 +116,8 @@ class StripeClient (TrieveAPIClient):
         tr_organization: str,
         subscription_id: str,
     ) -> Any:
-        """Cancel a subscription by its id
+        """
+        Cancel a subscription by its id
 
         Args:
             tr_organization: The organization id to use for the request
@@ -143,7 +148,8 @@ class StripeClient (TrieveAPIClient):
         subscription_id: str,
         plan_id: str,
     ) -> Any:
-        """Update a subscription to a new plan
+        """
+        Update a subscription to a new plan
 
         Args:
             tr_organization: The organization id to use for the request

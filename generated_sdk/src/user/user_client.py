@@ -11,7 +11,8 @@ class UserClient (TrieveAPIClient):
         role: int,
         user_id: Optional[str] = None,
     ) -> Any:
-        """Update a user's information for the org specified via header. If the user_id is not provided, the auth'ed user will be updated. If the user_id is provided, the role of the auth'ed user or api key must be an admin (1) or owner (2) of the organization.
+        """
+        Update a user's information for the org specified via header. If the user_id is not provided, the auth'ed user will be updated. If the user_id is provided, the role of the auth'ed user or api key must be an admin (1) or owner (2) of the organization.
 
         Args:
             tr_organization: The organization id to use for the request
@@ -44,7 +45,8 @@ class UserClient (TrieveAPIClient):
     def get_user_api_keys(
         self,
     ) -> Any:
-        """Get the api keys which belong to the auth'ed user. The actual api key values are not returned, only the ids, names, and creation dates.
+        """
+        Get the api keys which belong to the auth'ed user. The actual api key values are not returned, only the ids, names, and creation dates.
 
         Returns:
             Response data
@@ -67,7 +69,8 @@ class UserClient (TrieveAPIClient):
         self,
         api_key_id: str,
     ) -> Any:
-        """Delete an api key for the auth'ed user.
+        """
+        Delete an api key for the auth'ed user.
 
         Args:
             api_key_id: The id of the api key to delete

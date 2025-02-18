@@ -11,7 +11,8 @@ class FileClient (TrieveAPIClient):
         dataset_id: str,
         page: int,
     ) -> Any:
-        """Get all files which belong to a given dataset specified by the dataset_id parameter. 10 files are returned per page.
+        """
+        Get all files which belong to a given dataset specified by the dataset_id parameter. 10 files are returned per page.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -55,7 +56,8 @@ class FileClient (TrieveAPIClient):
         target_splits_per_chunk: Optional[int] = None,
         time_stamp: Optional[str] = None,
     ) -> Any:
-        """Upload a file to S3 bucket attached to your dataset. You can select between a naive chunking strategy where the text is extracted with Apache Tika and split into segments with a target number of segments per chunk OR you can use a vision LLM to convert the file to markdown and create chunks per page. Auth'ed user must be an admin or owner of the dataset's organization to upload a file.
+        """
+        Upload a file to S3 bucket attached to your dataset. You can select between a naive chunking strategy where the text is extracted with Apache Tika and split into segments with a target number of segments per chunk OR you can use a vision LLM to convert the file to markdown and create chunks per page. Auth'ed user must be an admin or owner of the dataset's organization to upload a file.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -124,7 +126,8 @@ class FileClient (TrieveAPIClient):
         time_stamp: Optional[str] = None,
         upsert_by_tracking_id: Optional[bool] = None,
     ) -> Any:
-        """This route is useful for uploading very large CSV or JSONL files. Once you have completed the upload, chunks will be automatically created from the file for each line in the CSV or JSONL file. The chunks will be indexed and searchable. Auth'ed user must be an admin or owner of the dataset's organization to upload a file.
+        """
+        This route is useful for uploading very large CSV or JSONL files. Once you have completed the upload, chunks will be automatically created from the file for each line in the CSV or JSONL file. The chunks will be indexed and searchable. Auth'ed user must be an admin or owner of the dataset's organization to upload a file.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -178,7 +181,8 @@ class FileClient (TrieveAPIClient):
         metadata: Any,
         scrapeId: str,
     ) -> Any:
-        """Chunk HTML by headings and queue for indexing into the specified dataset.
+        """
+        Chunk HTML by headings and queue for indexing into the specified dataset.
 
         Args:
             data: No description provided
@@ -213,7 +217,8 @@ class FileClient (TrieveAPIClient):
         file_id: str,
         content_type: Optional[str] = None,
     ) -> Any:
-        """Get a signed s3 url corresponding to the file_id requested such that you can download the file.
+        """
+        Get a signed s3 url corresponding to the file_id requested such that you can download the file.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -247,7 +252,8 @@ class FileClient (TrieveAPIClient):
         file_id: str,
         delete_chunks: bool,
     ) -> Any:
-        """Delete a file from S3 attached to the server based on its id. This will disassociate chunks from the file, but only delete them all together if you specify delete_chunks to be true. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        Delete a file from S3 attached to the server based on its id. This will disassociate chunks from the file, but only delete them all together if you specify delete_chunks to be true. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.

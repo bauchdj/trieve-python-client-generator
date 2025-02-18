@@ -9,7 +9,8 @@ class OrganizationClient (TrieveAPIClient):
         self,
         name: str,
     ) -> Any:
-        """Create a new organization. The auth'ed user who creates the organization will be the default owner of the organization.
+        """
+        Create a new organization. The auth'ed user who creates the organization will be the default owner of the organization.
 
         Args:
             name: The arbitrary name which will be used to identify the organization. This name must be unique.
@@ -40,7 +41,8 @@ class OrganizationClient (TrieveAPIClient):
         name: Optional[str] = None,
         partner_configuration: Optional[Any] = None,
     ) -> Any:
-        """Update an organization. Only the owner of the organization can update it.
+        """
+        Update an organization. Only the owner of the organization can update it.
 
         Args:
             tr_organization: The organization id to use for the request
@@ -74,7 +76,8 @@ class OrganizationClient (TrieveAPIClient):
         self,
         tr_organization: str,
     ) -> Any:
-        """Get the api keys which belong to the organization. The actual api key values are not returned, only the ids, names, and creation dates.
+        """
+        Get the api keys which belong to the organization. The actual api key values are not returned, only the ids, names, and creation dates.
 
         Args:
             tr_organization: The organization id to use for the request.
@@ -108,7 +111,8 @@ class OrganizationClient (TrieveAPIClient):
         expires_at: Optional[str] = None,
         scopes: Optional[List[str]] = None,
     ) -> Any:
-        """Create a new api key for the organization. Successful response will contain the newly created api key.
+        """
+        Create a new api key for the organization. Successful response will contain the newly created api key.
 
         Args:
             tr_organization: The organization id to use for the request.
@@ -151,7 +155,8 @@ class OrganizationClient (TrieveAPIClient):
         api_key_id: str,
         tr_organization: str,
     ) -> Any:
-        """Delete an api key for the auth'ed organization.
+        """
+        Delete an api key for the auth'ed organization.
 
         Args:
             api_key_id: The id of the api key to delete
@@ -181,7 +186,8 @@ class OrganizationClient (TrieveAPIClient):
         tr_organization: str,
         dataset_config: Any,
     ) -> Any:
-        """Update the configurations for all datasets in an organization. Only the specified keys in the configuration object will be changed per dataset such that you can preserve dataset unique values. Auth'ed user or api key must have an owner role for the specified organization.
+        """
+        Update the configurations for all datasets in an organization. Only the specified keys in the configuration object will be changed per dataset such that you can preserve dataset unique values. Auth'ed user or api key must have an owner role for the specified organization.
 
         Args:
             tr_organization: The organization id to use for the request
@@ -214,7 +220,8 @@ class OrganizationClient (TrieveAPIClient):
         tr_organization: str,
         organization_id: str,
     ) -> Any:
-        """Fetch the current usage specification of an organization by its id. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        Fetch the current usage specification of an organization by its id. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_organization: The organization id to use for the request
@@ -244,7 +251,8 @@ class OrganizationClient (TrieveAPIClient):
         tr_organization: str,
         organization_id: str,
     ) -> Any:
-        """Fetch the users of an organization by its id. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        Fetch the users of an organization by its id. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_organization: The organization id to use for the request
@@ -274,7 +282,8 @@ class OrganizationClient (TrieveAPIClient):
         tr_organization: str,
         organization_id: str,
     ) -> Any:
-        """Fetch the details of an organization by its id. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        Fetch the details of an organization by its id. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_organization: The organization id to use for the request
@@ -304,7 +313,8 @@ class OrganizationClient (TrieveAPIClient):
         tr_organization: str,
         organization_id: str,
     ) -> Any:
-        """Delete an organization by its id. The auth'ed user must be an owner of the organization to delete it.
+        """
+        Delete an organization by its id. The auth'ed user must be an owner of the organization to delete it.
 
         Args:
             tr_organization: The organization id to use for the request

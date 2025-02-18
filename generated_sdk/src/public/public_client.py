@@ -10,6 +10,7 @@ class PublicClient (TrieveAPIClient):
         dataset_id: str,
     ) -> Any:
         """
+        
 
         Args:
             dataset_id: The id or tracking_id of the dataset you want to get the demo page for.

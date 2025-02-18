@@ -15,7 +15,8 @@ class AnalyticsClient (TrieveAPIClient):
         clicked_chunk_tracking_id: Optional[str] = None,
         metadata: Optional[Any] = None,
     ) -> Any:
-        """This route allows you to send clickstream data to the system. Clickstream data is used to fine-tune the re-ranking of search results and recommendations.
+        """
+        This route allows you to send clickstream data to the system. Clickstream data is used to fine-tune the re-ranking of search results and recommendations.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -58,7 +59,8 @@ class AnalyticsClient (TrieveAPIClient):
         tr_dataset: str,
         request_body: Optional[EventTypes] = None,
     ) -> Any:
-        """This route allows you to send user event data to the system.
+        """
+        This route allows you to send user event data to the system.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -88,7 +90,8 @@ class AnalyticsClient (TrieveAPIClient):
         filter: Optional[EventAnalyticsFilter] = None,
         page: Optional[int] = None,
     ) -> Any:
-        """This route allows you to view all user events.
+        """
+        This route allows you to view all user events.
 
         Args:
             filter: Filter to apply to the events when querying for them
@@ -120,7 +123,8 @@ class AnalyticsClient (TrieveAPIClient):
         tr_dataset: str,
         request_body: Optional[CTRAnalytics] = None,
     ) -> Any:
-        """This route allows you to view the CTR analytics for a dataset.
+        """
+        This route allows you to view the CTR analytics for a dataset.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -150,7 +154,8 @@ class AnalyticsClient (TrieveAPIClient):
         tr_dataset: str,
         event_id: str,
     ) -> Any:
-        """This route allows you to view an user event by its ID. You can pass in any type of event and get the details for that event.
+        """
+        This route allows you to view an user event by its ID. You can pass in any type of event and get the details for that event.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -180,7 +185,8 @@ class AnalyticsClient (TrieveAPIClient):
         tr_dataset: str,
         request_body: Optional[RAGAnalytics] = None,
     ) -> Any:
-        """This route allows you to view the RAG analytics for a dataset.
+        """
+        This route allows you to view the RAG analytics for a dataset.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -212,7 +218,8 @@ class AnalyticsClient (TrieveAPIClient):
         rating: int,
         note: Optional[str] = None,
     ) -> Any:
-        """This route allows you to Rate a RAG query.
+        """
+        This route allows you to Rate a RAG query.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -249,7 +256,8 @@ class AnalyticsClient (TrieveAPIClient):
         tr_dataset: str,
         request_body: Optional[RecommendationAnalytics] = None,
     ) -> Any:
-        """This route allows you to view the recommendation analytics for a dataset.
+        """
+        This route allows you to view the recommendation analytics for a dataset.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -279,7 +287,8 @@ class AnalyticsClient (TrieveAPIClient):
         tr_dataset: str,
         request_body: Optional[SearchAnalytics] = None,
     ) -> Any:
-        """This route allows you to view the search analytics for a dataset.
+        """
+        This route allows you to view the search analytics for a dataset.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -311,7 +320,8 @@ class AnalyticsClient (TrieveAPIClient):
         rating: int,
         note: Optional[str] = None,
     ) -> Any:
-        """This route allows you to Rate a search query.
+        """
+        This route allows you to Rate a search query.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -348,7 +358,8 @@ class AnalyticsClient (TrieveAPIClient):
         tr_dataset: str,
         request_body: Optional[ClusterAnalytics] = None,
     ) -> Any:
-        """This route allows you to view the cluster analytics for a dataset.
+        """
+        This route allows you to view the cluster analytics for a dataset.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -379,7 +390,8 @@ class AnalyticsClient (TrieveAPIClient):
         type: TopDatasetsRequestTypes,
         date_range: Optional[DateRange] = None,
     ) -> Any:
-        """This route allows you to view the top datasets for a given type.
+        """
+        This route allows you to view the top datasets for a given type.
 
         Args:
             tr_organization: The organization id to use for the request

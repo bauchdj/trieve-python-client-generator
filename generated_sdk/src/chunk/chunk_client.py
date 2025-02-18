@@ -10,7 +10,8 @@ class ChunkClient (TrieveAPIClient):
         tr_dataset: str,
         request_body: Optional[CreateChunkReqPayloadEnum] = None,
     ) -> Any:
-        """Create new chunk(s). If the chunk has the same tracking_id as an existing chunk, the request will fail. Once a chunk is created, it can be searched for using the search endpoint.
+        """
+        Create new chunk(s). If the chunk has the same tracking_id as an existing chunk, the request will fail. Once a chunk is created, it can be searched for using the search endpoint.
 If uploading in bulk, the maximum amount of chunks that can be uploaded at once is 120 chunks. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
@@ -56,7 +57,8 @@ If uploading in bulk, the maximum amount of chunks that can be uploaded at once 
         tracking_id: Optional[str] = None,
         weight: Optional[float] = None,
     ) -> Any:
-        """Update a chunk. If you try to change the tracking_id of the chunk to have the same tracking_id as an existing chunk, the request will fail. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        Update a chunk. If you try to change the tracking_id of the chunk to have the same tracking_id as an existing chunk, the request will fail. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -119,7 +121,8 @@ If uploading in bulk, the maximum amount of chunks that can be uploaded at once 
         tr_dataset: str,
         filter: ChunkFilter,
     ) -> Any:
-        """Delete multiple chunks using a filter. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        Delete multiple chunks using a filter. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -167,7 +170,8 @@ If uploading in bulk, the maximum amount of chunks that can be uploaded at once 
         use_quote_negated_terms: Optional[bool] = None,
         user_id: Optional[str] = None,
     ) -> Any:
-        """This route provides the primary autocomplete functionality for the API. This prioritize prefix matching with semantic or full-text search.
+        """
+        This route provides the primary autocomplete functionality for the API. This prioritize prefix matching with semantic or full-text search.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -236,7 +240,8 @@ If uploading in bulk, the maximum amount of chunks that can be uploaded at once 
         score_threshold: Optional[float] = None,
         use_quote_negated_terms: Optional[bool] = None,
     ) -> Any:
-        """This route can be used to determine the number of chunk results that match a search query including score threshold and filters. It may be high latency for large limits. There is a dataset configuration imposed restriction on the maximum limit value (default 10,000) which is used to prevent DDOS attacks. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        This route can be used to determine the number of chunk results that match a search query including score threshold and filters. It may be high latency for large limits. There is a dataset configuration imposed restriction on the maximum limit value (default 10,000) which is used to prevent DDOS attacks. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -293,7 +298,8 @@ If uploading in bulk, the maximum amount of chunks that can be uploaded at once 
         temperature: Optional[float] = None,
         user_id: Optional[str] = None,
     ) -> Any:
-        """This endpoint exists as an alternative to the topic+message resource pattern where our Trieve handles chat memory. With this endpoint, the user is responsible for providing the context window and the prompt and the conversation is ephemeral.
+        """
+        This endpoint exists as an alternative to the topic+message resource pattern where our Trieve handles chat memory. With this endpoint, the user is responsible for providing the context window and the prompt and the conversation is ephemeral.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -364,7 +370,8 @@ If uploading in bulk, the maximum amount of chunks that can be uploaded at once 
         strategy: Optional[RecommendationStrategy] = None,
         user_id: Optional[str] = None,
     ) -> Any:
-        """Get recommendations of chunks similar to the positive samples in the request and dissimilar to the negative.
+        """
+        Get recommendations of chunks similar to the positive samples in the request and dissimilar to the negative.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -434,7 +441,8 @@ If uploading in bulk, the maximum amount of chunks that can be uploaded at once 
         use_quote_negated_terms: Optional[bool] = None,
         user_id: Optional[str] = None,
     ) -> Any:
-        """This route provides the primary search functionality for the API. It can be used to search for chunks by semantic similarity, full-text similarity, or a combination of both. Results' `chunk_html` values will be modified with `<mark><b>` or custom specified tags for sub-sentence highlighting.
+        """
+        This route provides the primary search functionality for the API. It can be used to search for chunks by semantic similarity, full-text similarity, or a combination of both. Results' `chunk_html` values will be modified with `<mark><b>` or custom specified tags for sub-sentence highlighting.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -501,7 +509,8 @@ If uploading in bulk, the maximum amount of chunks that can be uploaded at once 
         body_remove_strings: Optional[List[str]] = None,
         heading_remove_strings: Optional[List[str]] = None,
     ) -> Any:
-        """This endpoint receives a single html string and splits it into chunks based on the headings and
+        """
+        This endpoint receives a single html string and splits it into chunks based on the headings and
 body content. The headings are split based on heading html tags. chunk_html has a maximum size
 of 256Kb.
 
@@ -542,7 +551,8 @@ of 256Kb.
         suggestion_type: Optional[SuggestType] = None,
         suggestions_to_create: Optional[int] = None,
     ) -> Any:
-        """This endpoint will generate 3 suggested queries based off a hybrid search using RAG with the query provided in the request body and return them as a JSON object.
+        """
+        This endpoint will generate 3 suggested queries based off a hybrid search using RAG with the query provided in the request body and return them as a JSON object.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -593,7 +603,8 @@ of 256Kb.
         time_stamp: Optional[str] = None,
         weight: Optional[float] = None,
     ) -> Any:
-        """Update a chunk by tracking_id. This is useful for when you are coordinating with an external system and want to use the tracking_id to identify the chunk. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        Update a chunk by tracking_id. This is useful for when you are coordinating with an external system and want to use the tracking_id to identify the chunk. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -643,7 +654,8 @@ of 256Kb.
         tracking_id: str,
         x_api_version: Optional[APIVersion] = None,
     ) -> Any:
-        """Get a singular chunk by tracking_id. This is useful for when you are coordinating with an external system and want to use your own id as the primary reference for a chunk.
+        """
+        Get a singular chunk by tracking_id. This is useful for when you are coordinating with an external system and want to use your own id as the primary reference for a chunk.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -676,7 +688,8 @@ of 256Kb.
         tr_dataset: str,
         tracking_id: str,
     ) -> Any:
-        """Delete a chunk by tracking_id. This is useful for when you are coordinating with an external system and want to use the tracking_id to identify the chunk. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        Delete a chunk by tracking_id. This is useful for when you are coordinating with an external system and want to use the tracking_id to identify the chunk. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -707,7 +720,8 @@ of 256Kb.
         chunk_id: str,
         x_api_version: Optional[APIVersion] = None,
     ) -> Any:
-        """Get a singular chunk by id.
+        """
+        Get a singular chunk by id.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -740,7 +754,8 @@ of 256Kb.
         tr_dataset: str,
         chunk_id: str,
     ) -> Any:
-        """Delete a chunk by its id. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        Delete a chunk by its id. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -771,7 +786,8 @@ of 256Kb.
         ids: List[str],
         x_api_version: Optional[APIVersion] = None,
     ) -> Any:
-        """Get multiple chunks by multiple ids.
+        """
+        Get multiple chunks by multiple ids.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -810,7 +826,8 @@ of 256Kb.
         page_size: Optional[int] = None,
         sort_by: Optional[SortByField] = None,
     ) -> Any:
-        """Get paginated chunks from your dataset with filters and custom sorting. If sort by is not specified, the results will sort by the id's of the chunks in ascending order. Sort by and offset_chunk_id cannot be used together; if you want to scroll with a sort by then you need to use a must_not filter with the ids you have already seen. There is a limit of 1000 id's in a must_not filter at a time.
+        """
+        Get paginated chunks from your dataset with filters and custom sorting. If sort by is not specified, the results will sort by the id's of the chunks in ascending order. Sort by and offset_chunk_id cannot be used together; if you want to scroll with a sort by then you need to use a must_not filter with the ids you have already seen. There is a limit of 1000 id's in a must_not filter at a time.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -850,7 +867,8 @@ of 256Kb.
         tracking_ids: List[str],
         x_api_version: Optional[APIVersion] = None,
     ) -> Any:
-        """Get multiple chunks by ids.
+        """
+        Get multiple chunks by ids.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.

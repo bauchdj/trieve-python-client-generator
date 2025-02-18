@@ -10,7 +10,8 @@ class ChunkGroupClient (TrieveAPIClient):
         tr_dataset: str,
         request_body: Optional[CreateChunkGroupReqPayloadEnum] = None,
     ) -> Any:
-        """Create new chunk_group(s). This is a way to group chunks together. If you try to create a chunk_group with the same tracking_id as an existing chunk_group, this operation will fail. Only 1000 chunk groups can be created at a time. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        Create new chunk_group(s). This is a way to group chunks together. If you try to create a chunk_group with the same tracking_id as an existing chunk_group, this operation will fail. Only 1000 chunk groups can be created at a time. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -46,7 +47,8 @@ class ChunkGroupClient (TrieveAPIClient):
         tracking_id: Optional[str] = None,
         update_chunks: Optional[bool] = None,
     ) -> Any:
-        """Update a chunk_group. One of group_id or tracking_id must be provided. If you try to change the tracking_id to one that already exists, this operation will fail. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        Update a chunk_group. One of group_id or tracking_id must be provided. If you try to change the tracking_id to one that already exists, this operation will fail. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -94,7 +96,8 @@ by appending the group's tags to the chunk's tags. Default is false.
         chunk_id: Optional[str] = None,
         chunk_tracking_id: Optional[str] = None,
     ) -> Any:
-        """Route to add a chunk to a group. One of chunk_id or chunk_tracking_id must be provided. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        Route to add a chunk to a group. One of chunk_id or chunk_tracking_id must be provided. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -131,7 +134,8 @@ by appending the group's tags to the chunk's tags. Default is false.
         group_id: str,
         chunk_id: Optional[str] = None,
     ) -> Any:
-        """Route to remove a chunk from a group. Auth'ed user or api key must be an admin or owner of the dataset's organization to remove a chunk from a group.
+        """
+        Route to remove a chunk from a group. Auth'ed user or api key must be an admin or owner of the dataset's organization to remove a chunk from a group.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -168,7 +172,8 @@ by appending the group's tags to the chunk's tags. Default is false.
         chunk_ids: Optional[List[str]] = None,
         chunk_tracking_ids: Optional[List[str]] = None,
     ) -> Any:
-        """Route to get the groups that a chunk is in.
+        """
+        Route to get the groups that a chunk is in.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -204,7 +209,8 @@ by appending the group's tags to the chunk's tags. Default is false.
         group_id: Optional[str] = None,
         group_tracking_id: Optional[str] = None,
     ) -> Any:
-        """Route to get the number of chunks that is in a group
+        """
+        Route to get the number of chunks that is in a group
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -254,7 +260,8 @@ by appending the group's tags to the chunk's tags. Default is false.
         use_quote_negated_terms: Optional[bool] = None,
         user_id: Optional[str] = None,
     ) -> Any:
-        """This route allows you to get groups as results instead of chunks. Each group returned will have the matching chunks sorted by similarity within the group. This is useful for when you want to get groups of chunks which are similar to the search query. If choosing hybrid search, the top chunk of each group will be re-ranked using scores from a cross encoder model. Compatible with semantic, fulltext, or hybrid search modes.
+        """
+        This route allows you to get groups as results instead of chunks. Each group returned will have the matching chunks sorted by similarity within the group. This is useful for when you want to get groups of chunks which are similar to the search query. If choosing hybrid search, the top chunk of each group will be re-ranked using scores from a cross encoder model. Compatible with semantic, fulltext, or hybrid search modes.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -330,7 +337,8 @@ preserved.
         strategy: Optional[RecommendationStrategy] = None,
         user_id: Optional[str] = None,
     ) -> Any:
-        """Route to get recommended groups. This route will return groups which are similar to the groups in the request body. You must provide at least one positive group id or group tracking id.
+        """
+        Route to get recommended groups. This route will return groups which are similar to the groups in the request body. You must provide at least one positive group id or group tracking id.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -403,7 +411,8 @@ preserved.
         use_quote_negated_terms: Optional[bool] = None,
         user_id: Optional[str] = None,
     ) -> Any:
-        """This route allows you to search only within a group. This is useful for when you only want search results to contain chunks which are members of a specific group. If choosing hybrid search, the results will be re-ranked using scores from a cross encoder model.
+        """
+        This route allows you to search only within a group. This is useful for when you only want search results to contain chunks which are members of a specific group. If choosing hybrid search, the results will be re-ranked using scores from a cross encoder model.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -473,7 +482,8 @@ preserved.
         page: int,
         x_api_version: Optional[APIVersion] = None,
     ) -> Any:
-        """Route to get all chunks for a group. The response is paginated, with each page containing 10 chunks. Support for custom page size is coming soon. Page is 1-indexed.
+        """
+        Route to get all chunks for a group. The response is paginated, with each page containing 10 chunks. Support for custom page size is coming soon. Page is 1-indexed.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -507,7 +517,8 @@ preserved.
         tr_dataset: str,
         tracking_id: str,
     ) -> Any:
-        """Fetch the group with the given tracking id.
+        """
+        Fetch the group with the given tracking id.
 get_group_by_tracking_id
 
         Args:
@@ -540,7 +551,8 @@ get_group_by_tracking_id
         chunk_id: Optional[str] = None,
         chunk_tracking_id: Optional[str] = None,
     ) -> Any:
-        """Route to add a chunk to a group by tracking id. One of chunk_id or chunk_tracking_id must be provided. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        Route to add a chunk to a group by tracking id. One of chunk_id or chunk_tracking_id must be provided. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -577,7 +589,8 @@ get_group_by_tracking_id
         tracking_id: str,
         delete_chunks: bool,
     ) -> Any:
-        """Delete a chunk_group with the given tracking id. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        Delete a chunk_group with the given tracking id. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -610,7 +623,8 @@ get_group_by_tracking_id
         tr_dataset: str,
         group_id: str,
     ) -> Any:
-        """Fetch the group with the given id.
+        """
+        Fetch the group with the given id.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -641,7 +655,8 @@ get_group_by_tracking_id
         group_id: str,
         delete_chunks: bool,
     ) -> Any:
-        """This will delete a chunk_group. If you set delete_chunks to true, it will also delete the chunks within the group. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        This will delete a chunk_group. If you set delete_chunks to true, it will also delete the chunks within the group. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -676,7 +691,8 @@ get_group_by_tracking_id
         page: int,
         x_api_version: Optional[APIVersion] = None,
     ) -> Any:
-        """Route to get all chunks for a group. The response is paginated, with each page containing 10 chunks. Page is 1-indexed.
+        """
+        Route to get all chunks for a group. The response is paginated, with each page containing 10 chunks. Page is 1-indexed.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
@@ -711,7 +727,8 @@ get_group_by_tracking_id
         dataset_id: str,
         page: int,
     ) -> Any:
-        """Fetch the groups which belong to a dataset specified by its id.
+        """
+        Fetch the groups which belong to a dataset specified by its id.
 
         Args:
             tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.

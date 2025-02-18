@@ -8,7 +8,8 @@ class MetricsClient (TrieveAPIClient):
     def get_metrics(
         self,
     ) -> Any:
-        """This route allows you to view the number of items in each queue in the Prometheus format.
+        """
+        This route allows you to view the number of items in each queue in the Prometheus format.
 
         Returns:
             Response data

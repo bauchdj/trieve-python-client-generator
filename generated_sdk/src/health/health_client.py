@@ -8,7 +8,8 @@ class HealthClient (TrieveAPIClient):
     def health_check(
         self,
     ) -> Any:
-        """Confirmation that the service is healthy and can make embedding vectors
+        """
+        Confirmation that the service is healthy and can make embedding vectors
 
         Returns:
             Response data

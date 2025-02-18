@@ -13,7 +13,8 @@ class InvitationClient (TrieveAPIClient):
         redirect_uri: str,
         user_role: int,
     ) -> Any:
-        """Invitations act as a way to invite users to join an organization. After a user is invited, they will automatically be added to the organization with the role specified in the invitation once they set their. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        Invitations act as a way to invite users to join an organization. After a user is invited, they will automatically be added to the organization with the role specified in the invitation once they set their. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_organization: The organization id to use for the request
@@ -52,7 +53,8 @@ class InvitationClient (TrieveAPIClient):
         tr_organization: str,
         invitation_id: str,
     ) -> Any:
-        """Delete an invitation by id. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        Delete an invitation by id. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_organization: The organization id to use for the request
@@ -82,7 +84,8 @@ class InvitationClient (TrieveAPIClient):
         tr_organization: str,
         organization_id: str,
     ) -> Any:
-        """Get all invitations for the organization. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+        """
+        Get all invitations for the organization. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
         Args:
             tr_organization: The organization id to use for the request

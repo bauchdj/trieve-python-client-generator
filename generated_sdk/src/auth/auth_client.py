@@ -11,7 +11,8 @@ class AuthClient (TrieveAPIClient):
         redirect_uri: Optional[str] = None,
         inv_code: Optional[str] = None,
     ) -> Any:
-        """This will redirect you to the OAuth provider for authentication with email/pass, SSO, Google, Github, etc.
+        """
+        This will redirect you to the OAuth provider for authentication with email/pass, SSO, Google, Github, etc.
 
         Args:
             organization_id: ID of organization to authenticate into
@@ -44,7 +45,8 @@ class AuthClient (TrieveAPIClient):
     def logout(
         self,
     ) -> Any:
-        """Invalidate your current auth credential stored typically stored in a cookie. This does not invalidate your API key.
+        """
+        Invalidate your current auth credential stored typically stored in a cookie. This does not invalidate your API key.
 
         Returns:
             Response data
@@ -66,7 +68,8 @@ class AuthClient (TrieveAPIClient):
     def callback(
         self,
     ) -> Any:
-        """This is the callback route for the OAuth provider, it should not be called directly. Redirects to browser with set-cookie header.
+        """
+        This is the callback route for the OAuth provider, it should not be called directly. Redirects to browser with set-cookie header.
 
         Returns:
             Response data
@@ -88,7 +91,8 @@ class AuthClient (TrieveAPIClient):
     def get_me(
         self,
     ) -> Any:
-        """Get the user corresponding to your current auth credentials.
+        """
+        Get the user corresponding to your current auth credentials.
 
         Returns:
             Response data
