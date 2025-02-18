@@ -37,7 +37,7 @@ class OpenAPIParser:
                 for http_param in operation.parameters:
                     self._add_unique_http_param(http_params, http_param.model_dump(by_alias=True))
                 operations.append(operation)
-        headers = [Parameter(**http_param) for http_param in http_params if "header" in http_param["in"]]
+        headers = [HttpParameter(**http_param) for http_param in http_params if "header" in http_param["in"]]
         openapi = self.openapi_spec.get("openapi", "")
         info = self.openapi_spec.get("info", {})
         servers = self.openapi_spec.get("servers", [])
@@ -70,7 +70,7 @@ class OpenAPIParser:
             request_body=self._parse_request_body(details.get("requestBody", {}))
         )
 
-    def _parse_parameters(self, parameters: List[Dict[str, Any]]) -> List[Parameter]:
+    def _parse_parameters(self, parameters: List[Dict[str, Any]]) -> List[HttpParameter]:
         """
         Extract and format parameter details.
         """
@@ -85,7 +85,7 @@ class OpenAPIParser:
                 "description": param.get("description", ""),
                 "original_name": param["name"],  # Store the original name before cleaning
             }
-            params.append(Parameter(**param_data))
+            params.append(HttpParameter(**param_data))
         return params
 
     def _parse_request_body(self, request_body: Dict[str, Any]) -> Union[SchemaMetadata, bool]:

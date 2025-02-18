@@ -1,5 +1,5 @@
 from typing import Any, Dict, List, Optional, Union
-from src.{{ metadata.info.title.lower().replace(" ", "_") }}_client import {{ metadata.info.title.replace(" ", "").replace("-", "") }}Client
+from src.{{ formatted_import_path }}_client import {{ formatted_title }}Client
 from models.models import *
 
 {%- macro format_type(type_info) -%}
@@ -48,7 +48,7 @@ from models.models import *
 {%- endif -%}
 {%- endmacro %}
 
-class {{ class_name }} ({{ metadata.info.title.replace(" ", "").replace("-", "") }}Client):
+class {{ class_name }} ({{ formatted_title }}Client):
     """{{ metadata.info.description }}"""
 {% for operation in operations %}
     def {{ operation.operationId }}(
@@ -93,7 +93,8 @@ class {{ class_name }} ({{ metadata.info.title.replace(" ", "").replace("-", "")
         {%- endif %}
         {%- endif %}
     ) -> Any:
-        """{{ operation.description }}
+        """
+        {{ operation.description }}
         {%- if operation.parameters or operation.request_body %}
 
         Args:

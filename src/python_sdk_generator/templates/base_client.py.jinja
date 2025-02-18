@@ -11,7 +11,9 @@ class {{ metadata.info.title.replace(" ", "").replace("-", "") }}Client:
         before_request: Optional[Callable[[httpx.Request], None]] = None,
         after_request: Optional[Callable[[httpx.Response], None]] = None,
     ):
-        """Initialize the base client.
+        """
+        {{ metadata.info.title }}
+        {{ metadata.info.description }}
 
         Args:
             base_url: The base URL for API requests

@@ -1,7 +1,7 @@
 import json
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import click
 from jinja2 import Environment, FileSystemLoader
@@ -115,7 +115,8 @@ class SDKGenerator:
         """Generate a client class for a specific tag"""
         template = self.env.get_template("client.py.jinja")
         class_name = self._clean_name(tag) + "Client"
-        # Clean parameter names and types in operations
+        formatted_title = self.metadata.info.title.replace(" ", "").replace("-", "")
+        formatted_import_path = self.metadata.info.title.lower().replace(" ", "_")
 
         for op in operations:
             for param in op.parameters:
@@ -133,8 +134,10 @@ class SDKGenerator:
         return template.render(
             tag=tag,
             operations=operations,
+            metadata=metadata,
             class_name=class_name,
-            metadata=metadata
+            formatted_title=formatted_title,
+            formatted_import_path=formatted_import_path,
         )
 
     def _generate_base_client(self) -> str:

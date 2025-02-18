@@ -1,7 +1,7 @@
-from typing import Any, Dict, List, Optional, Union
-from pydantic import BaseModel, Field
+from typing import Any, Dict, List, Optional, Union, Literal
+from pydantic import BaseModel, Field, RootModel
 
-class Parameter(BaseModel):
+class HttpParameter(BaseModel):
     """Represents an OpenAPI parameter"""
     name: str
     in_location: str = Field(..., alias="in")
@@ -9,6 +9,10 @@ class Parameter(BaseModel):
     type: str
     description: str = ""
     original_name: str = ""  # Store the original parameter name before cleaning
+
+class HttpHeader(HttpParameter):
+    """Represents an OpenAPI header parameter"""
+    in_location: Literal["header"] = "header"
 
 class SchemaMetadata(BaseModel):
     """Represents an OpenAPI request body"""
@@ -27,7 +31,7 @@ class Operation(BaseModel):
     path: str
     summary: str = ""
     description: str = ""
-    parameters: List[Parameter] = Field(default_factory=list)
+    parameters: List[HttpParameter] = Field(default_factory=list)
     request_body: Union[SchemaMetadata, bool] = Field(default_factory=False)
 
 class Info(BaseModel):
@@ -51,5 +55,5 @@ class OpenAPIMetadata(BaseModel):
     info: Info
     servers: List[Server]
     operations: List[Operation]
-    headers: List[Parameter]
+    headers: List[HttpParameter]
     source_file: str = ""  # Path to the source OpenAPI file
