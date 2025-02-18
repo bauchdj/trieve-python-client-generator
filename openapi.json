@@ -3041,6 +3041,240 @@
 				]
 			}
 		},
+		"/api/crawl": {
+			"get": {
+				"tags": ["Crawl"],
+				"summary": "Get all crawl requests for a dataset",
+				"description": "This endpoint is used to get all crawl requests for a dataset.",
+				"operationId": "get_crawl_requests_for_dataset",
+				"parameters": [
+					{
+						"name": "TR-Dataset",
+						"in": "header",
+						"description": "The dataset id to use for the request",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					},
+					{
+						"name": "page",
+						"in": "query",
+						"description": "The page number to retrieve",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"format": "int64",
+							"nullable": true
+						}
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"description": "The number of items to retrieve per page",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"format": "int64",
+							"nullable": true
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Crawl requests retrieved successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/CrawlRequest"
+									}
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Service error relating to retrieving the crawl requests",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"ApiKey": ["admin"]
+					}
+				]
+			},
+			"post": {
+				"tags": ["Crawl"],
+				"summary": "Create a new crawl request",
+				"description": "This endpoint is used to create a new crawl request for a dataset. The request payload should contain the crawl options to use for the crawl.",
+				"operationId": "create_crawl",
+				"parameters": [
+					{
+						"name": "TR-Dataset",
+						"in": "header",
+						"description": "The dataset id to use for the request",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"requestBody": {
+					"description": "JSON request payload to create a new crawl",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateCrawlReqPayload"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Crawl created successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CrawlRequest"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Service error relating to creating the dataset",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"ApiKey": ["admin"]
+					}
+				]
+			},
+			"put": {
+				"tags": ["Crawl"],
+				"summary": "Update a crawl request",
+				"description": "This endpoint is used to update an existing crawl request for a dataset. The request payload should contain the crawl id and the crawl options to update for the crawl.",
+				"operationId": "update_crawl_request",
+				"parameters": [
+					{
+						"name": "TR-Dataset",
+						"in": "header",
+						"description": "The dataset id to use for the request",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"requestBody": {
+					"description": "JSON request payload to update a crawl",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateCrawlReqPayload"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Crawl updated successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CrawlRequest"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Service error relating to updating the dataset",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"ApiKey": ["admin"]
+					}
+				]
+			}
+		},
+		"/api/crawl/{crawl_id}": {
+			"delete": {
+				"tags": ["Crawl"],
+				"summary": "Delete a crawl request",
+				"description": "This endpoint is used to delete an existing crawl request for a dataset. The request payload should contain the crawl id to delete.",
+				"operationId": "delete_crawl_request",
+				"parameters": [
+					{
+						"name": "TR-Dataset",
+						"in": "header",
+						"description": "The dataset id to use for the request",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					},
+					{
+						"name": "crawl_id",
+						"in": "path",
+						"description": "The id of the crawl to delete",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Crawl deleted successfully"
+					},
+					"400": {
+						"description": "Service error relating to deleting the dataset",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"ApiKey": ["admin"]
+					}
+				]
+			}
+		},
 		"/api/dataset": {
 			"post": {
 				"tags": ["Dataset"],
@@ -3279,73 +3513,6 @@
 				"security": [
 					{
 						"ApiKey": ["owner"]
-					}
-				]
-			}
-		},
-		"/api/dataset/crawl_options/{dataset_id}": {
-			"get": {
-				"tags": ["Dataset"],
-				"summary": "Get Dataset Crawl Options",
-				"description": "Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.",
-				"operationId": "get_dataset_crawl_options",
-				"parameters": [
-					{
-						"name": "TR-Dataset",
-						"in": "header",
-						"description": "The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.",
-						"required": true,
-						"schema": {
-							"type": "string",
-							"format": "uuid"
-						}
-					},
-					{
-						"name": "dataset_id",
-						"in": "path",
-						"description": "The id of the dataset you want to retrieve.",
-						"required": true,
-						"schema": {
-							"type": "string",
-							"format": "uuid"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "Crawl options retrieved successfully",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/GetCrawlOptionsResponse"
-								}
-							}
-						}
-					},
-					"400": {
-						"description": "Service error relating to retrieving the crawl options",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponseBody"
-								}
-							}
-						}
-					},
-					"404": {
-						"description": "Dataset not found",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponseBody"
-								}
-							}
-						}
-					}
-				},
-				"security": [
-					{
-						"ApiKey": ["admin"]
 					}
 				]
 			}
@@ -4681,7 +4848,7 @@
 			"put": {
 				"tags": ["Message"],
 				"summary": "Edit message",
-				"description": "Edit message which exists within the topic's chat history. This will delete the message and replace it with a new message. The new message will be generated by the AI based on the new content provided in the request body. The response will include Chunks first on the stream if the topic is using RAG. The structure will look like `[chunks]||mesage`. See docs.trieve.ai for more information. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.",
+				"description": "This will delete the specified message and replace it with a new message. All messages after the message being edited in the sort order will be deleted. The new message will be generated by the AI based on the new content provided in the request body. The response will include Chunks first on the stream if the topic is using RAG. The structure will look like `[chunks]||mesage`. See docs.trieve.ai for more information. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.",
 				"operationId": "edit_message",
 				"parameters": [
 					{
@@ -4852,6 +5019,64 @@
 					},
 					"400": {
 						"description": "Service error relating to getting a chat completion",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponseBody"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"ApiKey": ["admin"]
+					}
+				]
+			}
+		},
+		"/api/message/get_tool_function_params": {
+			"post": {
+				"tags": ["Message"],
+				"summary": "Get tool function parameters",
+				"description": "This endpoint will generate the parameters for a tool function based on the user's message and image URL provided in the request body. The response will include the parameters for the tool function as a JSON object.",
+				"operationId": "get_tool_function_params",
+				"parameters": [
+					{
+						"name": "TR-Dataset",
+						"in": "header",
+						"description": "The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"requestBody": {
+					"description": "JSON request payload to get the parameters for a tool function",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetToolFunctionParamsReqPayload"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "A JSON object containing the parameters for the tool function",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetToolFunctionParamsRespBody"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Service error relating to to updating chunk, likely due to conflicting tracking_id",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -6617,18 +6842,13 @@
 			"BatchQueuedChunkResponse": {
 				"type": "object",
 				"title": "batch",
-				"required": ["chunk_metadata", "pos_in_queue"],
+				"required": ["chunk_metadata"],
 				"properties": {
 					"chunk_metadata": {
 						"type": "array",
 						"items": {
 							"$ref": "#/components/schemas/ChunkMetadata"
 						}
-					},
-					"pos_in_queue": {
-						"type": "integer",
-						"format": "int32",
-						"description": "The current position the last access item is in the queue"
 					}
 				},
 				"example": {
@@ -8119,6 +8339,63 @@
 					"site_url": "https://example.com"
 				}
 			},
+			"CrawlRequest": {
+				"type": "object",
+				"required": [
+					"id",
+					"url",
+					"status",
+					"crawl_type",
+					"next_crawl_at",
+					"interval",
+					"crawl_options",
+					"scrape_id",
+					"dataset_id",
+					"created_at",
+					"attempt_number"
+				],
+				"properties": {
+					"attempt_number": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"crawl_options": {
+						"$ref": "#/components/schemas/CrawlOptions"
+					},
+					"crawl_type": {
+						"$ref": "#/components/schemas/CrawlType"
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"dataset_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"interval": {
+						"type": "string"
+					},
+					"next_crawl_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"scrape_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"status": {
+						"$ref": "#/components/schemas/CrawlStatus"
+					},
+					"url": {
+						"type": "string"
+					}
+				}
+			},
 			"CrawlShopifyOptions": {
 				"type": "object",
 				"title": "CrawlShopifyOptions",
@@ -8137,6 +8414,37 @@
 						"nullable": true
 					}
 				}
+			},
+			"CrawlStatus": {
+				"oneOf": [
+					{
+						"type": "string",
+						"enum": ["Pending"]
+					},
+					{
+						"type": "object",
+						"required": ["Processing"],
+						"properties": {
+							"Processing": {
+								"type": "integer",
+								"format": "int32",
+								"minimum": 0
+							}
+						}
+					},
+					{
+						"type": "string",
+						"enum": ["Completed"]
+					},
+					{
+						"type": "string",
+						"enum": ["Failed"]
+					}
+				]
+			},
+			"CrawlType": {
+				"type": "string",
+				"enum": ["firecrawl", "openapi", "shopify", "youtube"]
 			},
 			"CrawlYoutubeOptions": {
 				"type": "object",
@@ -8329,6 +8637,15 @@
 					}
 				]
 			},
+			"CreateCrawlReqPayload": {
+				"type": "object",
+				"required": ["crawl_options"],
+				"properties": {
+					"crawl_options": {
+						"$ref": "#/components/schemas/CrawlOptions"
+					}
+				}
+			},
 			"CreateDatasetBatchReqPayload": {
 				"type": "object",
 				"required": ["datasets"],
@@ -8351,14 +8668,6 @@
 				"type": "object",
 				"required": ["dataset_name"],
 				"properties": {
-					"crawl_options": {
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/CrawlOptions"
-							}
-						],
-						"nullable": true
-					},
 					"dataset_name": {
 						"type": "string",
 						"description": "Name of the dataset."
@@ -8874,13 +9183,11 @@
 				},
 				"example": {
 					"dataset": {
-						"client_configuration": {
-							"key": "value"
-						},
 						"created_at": "2021-01-01 00:00:00.000",
 						"id": "e3e3e3e3-e3e3-e3e3-e3e3-e3e3e3e3e3e3",
 						"name": "Trieve",
 						"organization_id": "e3e3e3e3-e3e3-e3e3-e3e3-e3e3e3e3e3e3",
+						"server_configuration": {},
 						"updated_at": "2021-01-01 00:00:00.000"
 					},
 					"dataset_usage": {
@@ -10545,27 +10852,18 @@
 					}
 				}
 			},
-			"GetCrawlOptionsResponse": {
+			"GetCrawlRequestsReqPayload": {
 				"type": "object",
 				"properties": {
-					"crawl_options": {
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/CrawlOptions"
-							}
-						],
+					"limit": {
+						"type": "integer",
+						"format": "int64",
 						"nullable": true
-					}
-				},
-				"example": {
-					"crawl_options": {
-						"exclude_paths": ["https://example.com/exclude"],
-						"exclude_tags": ["#ad", "#footer"],
-						"include_paths": ["https://example.com/include"],
-						"include_tags": ["h1", "p", "a", ".main-content"],
-						"interval": "daily",
-						"limit": 1000,
-						"site_url": "https://example.com"
+					},
+					"page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
 					}
 				}
 			},
@@ -10673,6 +10971,72 @@
 				"properties": {
 					"url": {
 						"type": "string"
+					}
+				}
+			},
+			"GetToolFunctionParamsReqPayload": {
+				"type": "object",
+				"description": "Request payload for getting the parameters of a tool function",
+				"required": ["tool_function"],
+				"properties": {
+					"audio_input": {
+						"type": "string",
+						"description": "The base64 encoded audio input of the user message to attach to the topic and then generate an assistant message in response to.",
+						"nullable": true
+					},
+					"image_url": {
+						"type": "string",
+						"description": "Image URL to attach to the message to generate the parameters for the tool function.",
+						"nullable": true
+					},
+					"model": {
+						"type": "string",
+						"description": "Model name to use for the completion. If not specified, this defaults to the dataset's model.",
+						"nullable": true
+					},
+					"tool_function": {
+						"$ref": "#/components/schemas/ToolFunction"
+					},
+					"user_message_text": {
+						"type": "string",
+						"description": "Text of the user's message to the assistant which will be used to generate the parameters for the tool function.",
+						"nullable": true
+					}
+				},
+				"example": {
+					"image_url": "https://example.com/jacket.jpg",
+					"tool_function": {
+						"description": "Decide on which filters to apply to available catalog being used within the knowledge base to respond. Always get filters.",
+						"name": "get_filters",
+						"parameters": [
+							{
+								"description": "Whether or not the user is looking for jackets.",
+								"name": "jackets",
+								"parameter_type": "boolean"
+							},
+							{
+								"description": "Whether or not the user is looking for shirts.",
+								"name": "shirts",
+								"parameter_type": "boolean"
+							}
+						]
+					},
+					"user_message_text": "Get filters for the following message: \n\nI am looking for a jacket."
+				}
+			},
+			"GetToolFunctionParamsRespBody": {
+				"type": "object",
+				"description": "Response body for getting the parameters of a tool function",
+				"properties": {
+					"parameters": {
+						"description": "Parameters for the tool function.",
+						"nullable": true
+					}
+				},
+				"example": {
+					"parameters": {
+						"jackets": true,
+						"shirts": false
 					}
 				}
 			},
@@ -11486,37 +11850,52 @@
 					"name",
 					"created_at",
 					"updated_at",
-					"deleted"
+					"deleted",
+					"partner_configuration"
 				],
 				"properties": {
 					"created_at": {
 						"type": "string",
-						"format": "date-time"
+						"format": "date-time",
+						"description": "Timestamp of the creation of the dataset"
 					},
 					"deleted": {
 						"type": "integer",
-						"format": "int32"
+						"format": "int32",
+						"description": "Flag to indicate if the organization has been deleted. Deletes are handled async after the flag is set so as to avoid expensive search index compaction."
 					},
 					"id": {
 						"type": "string",
-						"format": "uuid"
+						"format": "uuid",
+						"description": "Unique identifier of the dataset, auto-generated uuid created by Trieve"
 					},
 					"name": {
-						"type": "string"
+						"type": "string",
+						"description": "Name of the organization"
+					},
+					"partner_configuration": {
+						"description": "Configuration of the organization for the Trieve partner program. Contact partnerships@trieve.ai for more details."
 					},
 					"registerable": {
 						"type": "boolean",
+						"description": "Flag to indicate whether or not new users may join the organization. Default is true.",
 						"nullable": true
 					},
 					"updated_at": {
 						"type": "string",
-						"format": "date-time"
+						"format": "date-time",
+						"description": "Timestamp of the last update of the dataset"
 					}
 				},
 				"example": {
 					"created_at": "2021-01-01 00:00:00.000",
 					"id": "e3e3e3e3-e3e3-e3e3-e3e3-e3e3e3e3e3e3",
 					"name": "Trieve",
+					"partner_configuration": {
+						"COMPANY_NAME": "Trieve",
+						"DEMO_DOMAIN": "demos.trieve.ai",
+						"FAVICON_URL": "https://cdn.trieve.ai/favicon.ico"
+					},
 					"registerable": true,
 					"updated_at": "2021-01-01 00:00:00.000"
 				}
@@ -11626,6 +12005,54 @@
 						"stripe_id": "sub_123",
 						"updated_at": "2021-01-01 00:00:00.000"
 					}
+				}
+			},
+			"PartnerConfiguration": {
+				"type": "object",
+				"required": [
+					"COMPANY_NAME",
+					"COMPANY_URL",
+					"FAVICON_URL",
+					"DEMO_DOMAIN",
+					"CALENDAR_LINK",
+					"SLACK_LINK",
+					"LINKEDIN_LINK",
+					"EMAIL",
+					"PHONE"
+				],
+				"properties": {
+					"CALENDAR_LINK": {
+						"type": "string"
+					},
+					"COMPANY_NAME": {
+						"type": "string"
+					},
+					"COMPANY_URL": {
+						"type": "string"
+					},
+					"DEMO_DOMAIN": {
+						"type": "string"
+					},
+					"EMAIL": {
+						"type": "string"
+					},
+					"FAVICON_URL": {
+						"type": "string"
+					},
+					"LINKEDIN_LINK": {
+						"type": "string"
+					},
+					"PHONE": {
+						"type": "string"
+					},
+					"SLACK_LINK": {
+						"type": "string"
+					}
+				},
+				"example": {
+					"COMPANY_NAME": "Trieve",
+					"DEMO_DOMAIN": "demos.trieve.ai",
+					"FAVICON_URL": "https://cdn.trieve.ai/favicon.ico"
 				}
 			},
 			"Pdf2MdOptions": {
@@ -12129,6 +12556,10 @@
 				"type": "object",
 				"required": ["tag"],
 				"properties": {
+					"description": {
+						"type": "string",
+						"nullable": true
+					},
 					"iconClassName": {
 						"type": "string",
 						"nullable": true
@@ -14715,15 +15146,10 @@
 			},
 			"SingleQueuedChunkResponse": {
 				"type": "object",
-				"required": ["chunk_metadata", "pos_in_queue"],
+				"required": ["chunk_metadata"],
 				"properties": {
 					"chunk_metadata": {
 						"$ref": "#/components/schemas/ChunkMetadata"
-					},
-					"pos_in_queue": {
-						"type": "integer",
-						"format": "int32",
-						"description": "The current position the last access item is in the queue"
 					}
 				},
 				"example": {
@@ -15415,6 +15841,72 @@
 					}
 				}
 			},
+			"ToolFunction": {
+				"type": "object",
+				"description": "Function for a LLM tool call",
+				"required": ["name", "description", "parameters"],
+				"properties": {
+					"description": {
+						"type": "string",
+						"description": "Description of the function."
+					},
+					"name": {
+						"type": "string",
+						"description": "Name of the function."
+					},
+					"parameters": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/ToolFunctionParameter"
+						},
+						"description": "Parameters of the function."
+					}
+				},
+				"example": {
+					"description": "Decide on which filters to apply to available catalog being used within the knowledge base to respond. Always get filters.",
+					"name": "get_filters",
+					"parameters": [
+						{
+							"description": "Whether or not the user is looking for jackets.",
+							"name": "jackets",
+							"parameter_type": "boolean"
+						},
+						{
+							"description": "Whether or not the user is looking for shirts.",
+							"name": "shirts",
+							"parameter_type": "boolean"
+						}
+					]
+				}
+			},
+			"ToolFunctionParameter": {
+				"type": "object",
+				"description": "Function parameter for a LLM tool call",
+				"required": ["name", "parameter_type", "description"],
+				"properties": {
+					"description": {
+						"type": "string",
+						"description": "The description of the tag."
+					},
+					"name": {
+						"type": "string",
+						"description": "Name of the parameter."
+					},
+					"parameter_type": {
+						"$ref": "#/components/schemas/ToolFunctionParameterType"
+					}
+				},
+				"example": {
+					"description": "Whether or not the user is looking for jackets.",
+					"name": "jackets",
+					"parameter_type": "boolean"
+				}
+			},
+			"ToolFunctionParameterType": {
+				"type": "string",
+				"description": "Type of a given parameter for a LLM tool call",
+				"enum": ["number", "boolean"]
+			},
 			"TopDatasetsRequestTypes": {
 				"type": "string",
 				"enum": ["search", "rag", "recommendation"]
@@ -15805,17 +16297,23 @@
 					"weight": 0.5
 				}
 			},
+			"UpdateCrawlReqPayload": {
+				"type": "object",
+				"required": ["crawl_id", "crawl_options"],
+				"properties": {
+					"crawl_id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "Crawl ID to update"
+					},
+					"crawl_options": {
+						"$ref": "#/components/schemas/CrawlOptions"
+					}
+				}
+			},
 			"UpdateDatasetReqPayload": {
 				"type": "object",
 				"properties": {
-					"crawl_options": {
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/CrawlOptions"
-							}
-						],
-						"nullable": true
-					},
 					"dataset_id": {
 						"type": "string",
 						"format": "uuid",
@@ -15916,6 +16414,10 @@
 					"name": {
 						"type": "string",
 						"description": "The new name of the organization. If not provided, the name will not be updated.",
+						"nullable": true
+					},
+					"partner_configuration": {
+						"description": "New details for the partnership configuration. If not provided, the partnership configuration will not be updated.",
 						"nullable": true
 					}
 				}
@@ -16306,6 +16808,10 @@
 		{
 			"name": "Chunk Group",
 			"description": "Chunk groups endpoint. Think of a chunk_group as a bookmark folder within the dataset."
+		},
+		{
+			"name": "Crawl",
+			"description": "Crawl endpoint. Used to create and manage crawls for datasets."
 		},
 		{
 			"name": "File",
