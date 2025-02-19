@@ -2,8 +2,10 @@
 from typing import Any, Dict, List, Optional, Union, Literal
 from pydantic import BaseModel, Field, RootModel
 
+
 class HttpParameter(BaseModel):
     """Represents an OpenAPI parameter"""
+
     name: str
     in_location: str = Field(..., alias="in")
     required: bool = False
@@ -11,12 +13,16 @@ class HttpParameter(BaseModel):
     description: str = ""
     original_name: str = ""  # Store the original parameter name before cleaning
 
+
 class HttpHeader(HttpParameter):
     """Represents an OpenAPI header parameter"""
+
     in_location: Literal["header"] = "header"
+
 
 class SchemaMetadata(BaseModel):
     """Represents an OpenAPI request body"""
+
     required: Optional[Union[bool, List[str]]] = None
     nullable: Optional[bool] = None
     type: str
@@ -27,8 +33,10 @@ class SchemaMetadata(BaseModel):
     def length_nested_json_schemas(self) -> int:
         return len(self.nested_json_schemas)
 
+
 class Operation(BaseModel):
     """Represents an OpenAPI operation"""
+
     tag: str
     operationId: str
     method: str
@@ -38,8 +46,10 @@ class Operation(BaseModel):
     parameters: List[HttpParameter] = Field(default_factory=list)
     request_body: Optional[SchemaMetadata] = None
 
+
 class Info(BaseModel):
     """Represents the 'info' object in OpenAPI metadata"""
+
     title: str
     version: str
     description: Optional[str] = ""
@@ -47,18 +57,23 @@ class Info(BaseModel):
     contact: Optional[Dict[str, Any]] = None
     license: Optional[Dict[str, Any]] = None
 
+
 class Server(BaseModel):
     """Represents a server in OpenAPI metadata"""
+
     url: str
     description: Optional[str] = ""
     variables: Optional[Dict[str, Dict[str, Any]]] = None
+
 
 class OpenAPITag(BaseModel):
     tag: str
     description: str
 
+
 class OpenAPIMetadata(BaseModel):
     """Represents the parsed OpenAPI metadata"""
+
     openapi: str
     info: Info
     servers: List[Server]

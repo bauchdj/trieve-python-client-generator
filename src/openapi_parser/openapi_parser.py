@@ -3,10 +3,12 @@ from typing import Any, Dict, List, Optional, Union
 from .models import *
 import click
 
+
 class OpenAPIParser:
     """
     A parser to extract relevant API operation details from an OpenAPI specification.
     """
+
     def __init__(self, openapi_path: str, tag: str = "", operation_id: str = ""):
         """
         Initialize the parser by loading the OpenAPI specification.
@@ -29,15 +31,23 @@ class OpenAPIParser:
             for method, details in methods.items():
                 if "operationId" not in details:
                     continue
-                if self.operation_id != "" and self.operation_id != details.get("operationId", ""):
+                if self.operation_id != "" and self.operation_id != details.get(
+                    "operationId", ""
+                ):
                     continue
                 if self.tag != "" and self.tag not in details.get("tags", [""]):
                     continue
                 operation = self._parse_operation(path, method, details)
                 for http_param in operation.parameters:
-                    self._add_unique_http_param(http_params, http_param.model_dump(by_alias=True))
+                    self._add_unique_http_param(
+                        http_params, http_param.model_dump(by_alias=True)
+                    )
                 operations.append(operation)
-        headers = [HttpParameter(**http_param) for http_param in http_params if "header" in http_param["in"]]
+        headers = [
+            HttpParameter(**http_param)
+            for http_param in http_params
+            if "header" in http_param["in"]
+        ]
         openapi = self.openapi_spec.get("openapi", "")
         info = self.openapi_spec.get("info", {})
         servers = self.openapi_spec.get("servers", [])
@@ -49,15 +59,22 @@ class OpenAPIParser:
             tags=tags,
             headers=headers,
             operations=operations,
-            source_file=self.openapi_path
+            source_file=self.openapi_path,
         )
 
-    def _add_unique_http_param(self, headers_list: List[Dict[str, Any]], new_header: Dict[str, Any]) -> None:
+    def _add_unique_http_param(
+        self, headers_list: List[Dict[str, Any]], new_header: Dict[str, Any]
+    ) -> None:
         """Add a dictionary to the list only if 'name' and 'in' fields are unique."""
-        if not any(h["name"] == new_header["name"] and h["in"] == new_header["in"] for h in headers_list):
+        if not any(
+            h["name"] == new_header["name"] and h["in"] == new_header["in"]
+            for h in headers_list
+        ):
             headers_list.append(new_header)
 
-    def _parse_operation(self, path: str, method: str, details: Dict[str, Any]) -> Operation:
+    def _parse_operation(
+        self, path: str, method: str, details: Dict[str, Any]
+    ) -> Operation:
         """
         Extract relevant details for an API operation.
         """
@@ -69,10 +86,12 @@ class OpenAPIParser:
             summary=details.get("summary", ""),
             description=details.get("description", ""),
             parameters=self._parse_parameters(details.get("parameters", [])),
-            request_body=self._parse_request_body(details.get("requestBody", {}))
+            request_body=self._parse_request_body(details.get("requestBody", {})),
         )
 
-    def _parse_parameters(self, parameters: List[Dict[str, Any]]) -> List[HttpParameter]:
+    def _parse_parameters(
+        self, parameters: List[Dict[str, Any]]
+    ) -> List[HttpParameter]:
         """
         Extract and format parameter details.
         """
@@ -85,17 +104,21 @@ class OpenAPIParser:
                 "required": param.get("required", False),
                 "type": self._resolve_type(param.get("schema", {})),
                 "description": param.get("description", ""),
-                "original_name": param["name"],  # Store the original name before cleaning
+                "original_name": param[
+                    "name"
+                ],  # Store the original name before cleaning
             }
             params.append(HttpParameter(**param_data))
         return params
 
-    def _parse_request_body(self, request_body: Dict[str, Any]) -> Union[SchemaMetadata, None]:
+    def _parse_request_body(
+        self, request_body: Dict[str, Any]
+    ) -> Union[SchemaMetadata, None]:
         """
         Extract and format request body details.
         """
         if not request_body:
-            return None 
+            return None
 
         content = request_body.get("content", {})
         json_schema = content.get("application/json", {}).get("schema", {})
@@ -117,7 +140,7 @@ class OpenAPIParser:
             type=json_schema_type,
             nested_json_schema_refs=nested_json_schema_refs,
             nested_json_schemas=nested_json_schemas,
-            length_nested_json_schemas=len(nested_json_schemas)
+            length_nested_json_schemas=len(nested_json_schemas),
         )
 
     def _resolve_type(self, schema: Dict[str, Any]) -> str:
@@ -129,7 +152,12 @@ class OpenAPIParser:
         if "allOf" in schema:
             return " & ".join([self._resolve_type(sub) for sub in schema["allOf"]])
         if "oneOf" in schema or "anyOf" in schema:
-            return " | ".join([self._resolve_type(sub) for sub in schema.get("oneOf", []) + schema.get("anyOf", [])])
+            return " | ".join(
+                [
+                    self._resolve_type(sub)
+                    for sub in schema.get("oneOf", []) + schema.get("anyOf", [])
+                ]
+            )
         if "not" in schema:
             return f"Not[{self._resolve_type(schema["not"])}]"
         return schema.get("type", "any")
@@ -146,7 +174,9 @@ class OpenAPIParser:
                 refs.extend(self._extract_refs(self.components[ref_name]))
         for key in ["allOf", "oneOf", "anyOf", "not"]:
             if key in schema:
-                for sub_schema in schema[key] if isinstance(schema[key], list) else [schema[key]]:
+                for sub_schema in (
+                    schema[key] if isinstance(schema[key], list) else [schema[key]]
+                ):
                     refs.extend(self._extract_refs(sub_schema))
         return refs
 
@@ -168,14 +198,23 @@ class OpenAPIParser:
         if "$ref" in schema:
             ref_name = schema["$ref"].split("/")[-1]
             if ref_name in self.components:
-                nested_types.extend(self._resolve_nested_types(self.components[ref_name]))
+                nested_types.extend(
+                    self._resolve_nested_types(self.components[ref_name])
+                )
         for key in ["allOf", "oneOf", "anyOf", "not"]:
             if key in schema:
-                for sub_schema in schema[key] if isinstance(schema[key], list) else [schema[key]]:
+                for sub_schema in (
+                    schema[key] if isinstance(schema[key], list) else [schema[key]]
+                ):
                     nested_types.extend(self._resolve_nested_types(sub_schema))
         return nested_types
 
-    def _traverse_dict(self, d: Dict[str, Any], key: Union[str, int] = None, parent: Union[Dict[str, Any], List[Any]] = None):
+    def _traverse_dict(
+        self,
+        d: Dict[str, Any],
+        key: Union[str, int] = None,
+        parent: Union[Dict[str, Any], List[Any]] = None,
+    ):
         """
         Traverses a dictionary, resolving any '$ref' values.
         :param d: The dictionary to traverse.
@@ -190,8 +229,12 @@ class OpenAPIParser:
             elif isinstance(value, list):
                 self._traverse_array(arr=value, key=k, parent=d)
 
-
-    def _traverse_array(self, arr: List[Any], key: Union[str, int] = None, parent: Union[Dict[str, Any], List[Any]] = None):
+    def _traverse_array(
+        self,
+        arr: List[Any],
+        key: Union[str, int] = None,
+        parent: Union[Dict[str, Any], List[Any]] = None,
+    ):
         """
         Traverses an array (list), resolving any '$ref' values inside the array.
         :param arr: The array (list) to traverse.
@@ -203,15 +246,30 @@ class OpenAPIParser:
             elif isinstance(item, list):
                 self._traverse_array(arr=item, key=i, parent=arr)
 
+
 @click.command()
-@click.option("--input", "input_file", default="openapi.json", type=click.Path(exists=True),
-              help="OpenAPI specification file (JSON or YAML)")
-@click.option("--tag", default="", type=str,)
-@click.option("--operation_id", default="", type=str,)
+@click.option(
+    "--input",
+    "input_file",
+    default="openapi.json",
+    type=click.Path(exists=True),
+    help="OpenAPI specification file (JSON or YAML)",
+)
+@click.option(
+    "--tag",
+    default="",
+    type=str,
+)
+@click.option(
+    "--operation_id",
+    default="",
+    type=str,
+)
 def main(input_file, tag, operation_id):
     parser = OpenAPIParser(input_file, tag=tag, operation_id=operation_id)
     operations = parser.parse()
     print("Path Operations:", json.dumps(operations.model_dump(), indent=2))
+
 
 if __name__ == "__main__":
     main()

@@ -5,11 +5,18 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import click
+import black
 from jinja2 import Environment, FileSystemLoader
 
 from .models.model_client import ClientPyJinja, MethodMetadata, MethodParameter
 from ..openapi_parser.openapi_parser import OpenAPIParser
-from ..openapi_parser.models import HttpParameter, OpenAPIMetadata, Operation, SchemaMetadata
+from ..openapi_parser.models import (
+    HttpParameter,
+    OpenAPIMetadata,
+    Operation,
+    SchemaMetadata,
+)
+
 
 class SDKGenerator:
     def __init__(
@@ -78,7 +85,7 @@ class SDKGenerator:
             "info": self.metadata.info.model_dump(),
             "servers": [s.model_dump() for s in self.metadata.servers],
             "paths": {},  # We'll get this from the original spec
-            "components": {}  # We'll get this from the original spec
+            "components": {},  # We'll get this from the original spec
         }
 
         # Get the original spec from the parser
@@ -96,20 +103,25 @@ class SDKGenerator:
         self.models_dir.mkdir(parents=True, exist_ok=True)
         cmd = [
             "datamodel-codegen",
-            "--input-file-type", "openapi",
-            "--input", str(openapi_file),
-            "--output", str(self.models_dir / "models.py"),
+            "--input-file-type",
+            "openapi",
+            "--input",
+            str(openapi_file),
+            "--output",
+            str(self.models_dir / "models.py"),
             "--use-standard-collections",
             "--use-schema-description",
             "--field-constraints",
             "--strict-nullable",
             "--wrap-string-literal",
-            "--enum-field-as-literal", "one",
+            "--enum-field-as-literal",
+            "one",
             "--use-double-quotes",
             "--use-default-kwarg",
             "--use-annotated",
             "--use-field-description",
-            "--output-model-type", "pydantic_v2.BaseModel"
+            "--output-model-type",
+            "pydantic_v2.BaseModel",
         ]
         subprocess.run(cmd, check=True)
 
@@ -130,7 +142,11 @@ class SDKGenerator:
                 # TODO fix this when it hits
                 # not hitting...
                 resolved_type = " & ".join(
-                    self.format_type(item) if isinstance(item, dict) and "$ref" not in item else item["$ref"].split("/")[-1]
+                    (
+                        self.format_type(item)
+                        if isinstance(item, dict) and "$ref" not in item
+                        else item["$ref"].split("/")[-1]
+                    )
                     for item in type_info["allOf"]
                 )
             elif "oneOf" in type_info:
@@ -150,7 +166,9 @@ class SDKGenerator:
         # print("END", resolved_type)
         return resolved_type
 
-    def _get_single_nested_schema(self, schema: Union[SchemaMetadata, None]) -> Union[Dict[str, Any], None]:
+    def _get_single_nested_schema(
+        self, schema: Union[SchemaMetadata, None]
+    ) -> Union[Dict[str, Any], None]:
         if schema is None:
             return None
         if schema.length_nested_json_schemas != 1:
@@ -161,36 +179,51 @@ class SDKGenerator:
             return nested_schema
         return schema
 
-    def _method_params_from_http_params(self, http_params: List[HttpParameter], cond: Callable[[HttpParameter], bool]) -> List[MethodParameter]:
+    def _method_params_from_http_params(
+        self, http_params: List[HttpParameter], cond: Callable[[HttpParameter], bool]
+    ) -> List[MethodParameter]:
         """
         Returns a list of MethodParameter objects based on the given condition.
         """
         return [
             MethodParameter(
                 required=http_param.required,
-                name=http_param.name, 
-                original_name=http_param.original_name, 
+                name=http_param.name,
+                original_name=http_param.original_name,
                 type=self.format_type(http_param.type),
                 description=http_param.description,
             )
-            for http_param in http_params if cond(http_param) 
+            for http_param in http_params
+            if cond(http_param)
         ]
 
-    def _method_params_from_schema_props(self, schema: Dict[str, Any], props: List[Dict[str, Any]], cond: Callable[[str, bool], bool]) -> List[MethodParameter]:
+    def _method_params_from_schema_props(
+        self,
+        schema: Dict[str, Any],
+        props: List[Dict[str, Any]],
+        cond: Callable[[str, bool], bool],
+    ) -> List[MethodParameter]:
         default_description = "No description provided"
         schema_required = schema.get("required", [])
-        is_required = lambda prop_name, prop: prop_name in schema_required or prop.get("required", False)
+        is_required = lambda prop_name, prop: prop_name in schema_required or prop.get(
+            "required", False
+        )
         return [
             MethodParameter(
                 required=is_required(prop_name, prop),
                 name=prop_name,
                 type=self.format_type(prop),
-                description=prop.get("description", None) or prop.get('nested_json_schemas', [schema])[0].get("description", None) or default_description,
+                description=prop.get("description", None)
+                or prop.get("nested_json_schemas", [schema])[0].get("description", None)
+                or default_description,
             )
-            for prop_name, prop in props.items() if cond(prop_name, is_required(prop_name, prop)) 
+            for prop_name, prop in props.items()
+            if cond(prop_name, is_required(prop_name, prop))
         ]
 
-    def _method_param_from_request_body(self, request_body: Dict[str, Any]) -> List[MethodParameter]:
+    def _method_param_from_request_body(
+        self, request_body: Dict[str, Any]
+    ) -> List[MethodParameter]:
         return [
             MethodParameter(
                 required=request_body.get("required", False),
@@ -199,10 +232,20 @@ class SDKGenerator:
                 description=request_body.get("description", "Request body"),
             )
         ]
-    
-    def _resolve_method_params(self, operation: Operation, schema:  Union[Dict[str, Any], None]) -> Tuple[List[MethodParameter], List[MethodParameter]]:
-        required_http_params: List[MethodParameter] = self._method_params_from_http_params(operation.parameters, lambda http_param: http_param.required == True)
-        optional_http_params: List[MethodParameter] = self._method_params_from_http_params(operation.parameters, lambda http_param: http_param.required != True)
+
+    def _resolve_method_params(
+        self, operation: Operation, schema: Union[Dict[str, Any], None]
+    ) -> Tuple[List[MethodParameter], List[MethodParameter]]:
+        required_http_params: List[MethodParameter] = (
+            self._method_params_from_http_params(
+                operation.parameters, lambda http_param: http_param.required == True
+            )
+        )
+        optional_http_params: List[MethodParameter] = (
+            self._method_params_from_http_params(
+                operation.parameters, lambda http_param: http_param.required != True
+            )
+        )
         http_param_names = [param.name for param in operation.parameters]
 
         required_schema_props: List[MethodParameter] = []
@@ -210,8 +253,18 @@ class SDKGenerator:
         if schema is not None:
             schema_props = schema.get("properties", None)
             if schema_props:
-                required_schema_props += self._method_params_from_schema_props(schema, schema_props, lambda prop_name,  is_required: is_required and prop_name not in http_param_names)
-                optional_schema_props += self._method_params_from_schema_props(schema, schema_props, lambda prop_name, is_required: not is_required and prop_name not in http_param_names)
+                required_schema_props += self._method_params_from_schema_props(
+                    schema,
+                    schema_props,
+                    lambda prop_name, is_required: is_required
+                    and prop_name not in http_param_names,
+                )
+                optional_schema_props += self._method_params_from_schema_props(
+                    schema,
+                    schema_props,
+                    lambda prop_name, is_required: not is_required
+                    and prop_name not in http_param_names,
+                )
             elif schema.get("required", False):
                 required_schema_props += self._method_param_from_request_body(schema)
             else:
@@ -222,7 +275,9 @@ class SDKGenerator:
 
         return [required_method_params, optional_method_params]
 
-    def _generate_client_class(self, tag: str, tag_description: str, operations: List[Operation]) -> str:
+    def _generate_client_class(
+        self, tag: str, tag_description: str, operations: List[Operation]
+    ) -> str:
         """Generate a client class for a specific tag"""
         class_name = self._clean_name(tag) + "Client"
         formatted_title = self.metadata.info.title.replace(" ", "").replace("-", "")
@@ -241,8 +296,12 @@ class SDKGenerator:
 
             http_params = op.parameters
             request_body = op.request_body
-            schema: Union[Dict[str, Any], None] = self._get_single_nested_schema(op.request_body)
-            required_method_params, optional_method_params = self._resolve_method_params(op, schema)
+            schema: Union[Dict[str, Any], None] = self._get_single_nested_schema(
+                op.request_body
+            )
+            required_method_params, optional_method_params = (
+                self._resolve_method_params(op, schema)
+            )
             methods.append(
                 MethodMetadata(
                     method_name=op.operationId,
@@ -266,7 +325,10 @@ class SDKGenerator:
         )
 
         template = self.env.get_template("client.py.jinja")
-        return template.render(template_metadata.model_dump())
+        rendered_code = template.render(template_metadata.model_dump())
+
+        formatted_code = black.format_str(rendered_code, mode=black.Mode())
+        return formatted_code
 
     def _generate_base_client(self) -> str:
         """Generate the base client class"""
@@ -280,15 +342,14 @@ class SDKGenerator:
             tag=tag,
             operations=operations,
             class_name=self._clean_name(tag) + "Client",
-            metadata=self.metadata
+            metadata=self.metadata,
         )
 
     def _generate_readme(self) -> str:
         """Generate README.md with SDK documentation"""
         template = self.env.get_template("README.md.jinja")
         return template.render(
-            metadata=self.metadata,
-            operations_by_tag=self._group_operations_by_tag()
+            metadata=self.metadata, operations_by_tag=self._group_operations_by_tag()
         )
 
     def _get_tag_description(self, tag: str) -> Union[str, None]:
@@ -312,7 +373,9 @@ class SDKGenerator:
 
         # Generate base client
         base_client_name = self._clean_name(self.metadata.info.title)
-        base_client_file = self._clean_file_name(self.metadata.info.title) + "_client.py"
+        base_client_file = (
+            self._clean_file_name(self.metadata.info.title) + "_client.py"
+        )
         base_client_path = src_dir / base_client_file
         base_client_content = self._generate_base_client()
         base_client_path.write_text(base_client_content)
@@ -324,8 +387,10 @@ class SDKGenerator:
             tag_dir = src_dir / tag
             tag_dir.mkdir(exist_ok=True)
             client_path = tag_dir / f"{tag}_client.py"
-            tag_description = self._get_tag_description(tag) 
-            client_content = self._generate_client_class(tag, tag_description, operations)
+            tag_description = self._get_tag_description(tag)
+            client_content = self._generate_client_class(
+                tag, tag_description, operations
+            )
             client_path.write_text(client_content)
 
             if self.generate_tests:
@@ -341,15 +406,31 @@ class SDKGenerator:
         readme_content = self._generate_readme()
         readme_path.write_text(readme_content)
 
+
 @click.command()
-@click.option("--input", "input_file", default="openapi.json", type=click.Path(exists=True),
-              help="OpenAPI specification file (JSON or YAML)")
-@click.option("--sdk-output", "-o", default="generated_sdk", type=click.Path(),
-              help="Output directory for the generated SDK")
-@click.option("--models-output", default="generated_sdk/models", type=click.Path(),
-              help="Output directory for generated models (default: <sdk-output>/models)")
-@click.option("--tests/--no-tests", default=False,
-              help="Generate tests (default: False)")
+@click.option(
+    "--input",
+    "input_file",
+    default="openapi.json",
+    type=click.Path(exists=True),
+    help="OpenAPI specification file (JSON or YAML)",
+)
+@click.option(
+    "--sdk-output",
+    "-o",
+    default="generated_sdk",
+    type=click.Path(),
+    help="Output directory for the generated SDK",
+)
+@click.option(
+    "--models-output",
+    default="generated_sdk/models",
+    type=click.Path(),
+    help="Output directory for generated models (default: <sdk-output>/models)",
+)
+@click.option(
+    "--tests/--no-tests", default=False, help="Generate tests (default: False)"
+)
 def main(input_file: str, sdk_output: str, models_output: Optional[str], tests: bool):
     """Generate a Python SDK from an OpenAPI specification."""
     # Parse OpenAPI spec
@@ -366,6 +447,7 @@ def main(input_file: str, sdk_output: str, models_output: Optional[str], tests: 
     generator.generate()
 
     print(f"Successfully generated SDK in: {sdk_dir}")
+
 
 if __name__ == "__main__":
     main()
