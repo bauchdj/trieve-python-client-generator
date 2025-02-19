@@ -1,151 +1,40 @@
 from typing import Any, Dict, List, Optional, Union
-from src.{{ formatted_import_path }}_client import {{ formatted_title }}Client
+from src.{{ parent_class_formatted_import_path }}_client import {{ parent_class_formatted_name }}Client
 from models.models import *
 
-{%- macro format_type(type_info) -%}
-{%- if type_info is mapping -%}
-    {%- if type_info.type and type_info.type != "object" and type_info.type != "array" -%}
-        {{- type_info.type | replace("string", "str") | replace("integer", "int") | replace("number", "float") | replace("boolean", "bool") | default("Any") -}}
-    {%- elif type_info.allOf is defined -%}
-        {%- for item in type_info.allOf -%}
-            {%- if item is mapping and item.get("$ref") -%}
-                {{- item["$ref"].split("/")[-1] -}}{% if not loop.last %} & {% endif -%}
-            {%- else -%}
-                {{- format_type(item) -}}{% if not loop.last %} & {% endif -%}
-            {%- endif -%}
-        {%- endfor -%}
-    {%- elif type_info.oneOf is defined -%}
-        Union[{% for item in type_info.oneOf -%}
-            {%- if item is mapping and item.get("$ref") -%}
-                {{- item["$ref"].split("/")[-1] -}}{% if not loop.last %}, {% endif -%}
-            {%- else -%}
-                {{- format_type(item) -}}{% if not loop.last %}, {% endif -%}
-            {%- endif -%}
-        {%- endfor %}]
-    {%- elif type_info.anyOf is defined -%}
-        Union[{% for item in type_info.anyOf -%}
-            {%- if item is mapping and item.get("$ref") -%}
-                {{- item["$ref"].split("/")[-1] -}}{% if not loop.last %}, {% endif -%}
-            {%- else -%}
-                {{- format_type(item) -}}{% if not loop.last %}, {% endif -%}
-            {%- endif -%}
-        {%- endfor %}]
-    {%- elif type_info.not is defined -%}
-        Any
-    {%- elif type_info.type == "array" -%}
-        {%- if type_info.get("items") -%}
-            List[{{- format_type(type_info.get("items")) -}}]
-        {%- else -%}
-            List[Any]
-        {%- endif -%}
-    {%- elif type_info.get("$ref") -%}
-        {{- type_info["$ref"].split("/")[-1] -}}
-    {%- else -%}
-        Any
-    {%- endif -%}
-{%- else -%}
-    {{- type_info | replace("string", "str") | replace("integer", "int") | replace("number", "float") | replace("boolean", "bool") | default("Any") -}}
-{%- endif -%}
-{%- endmacro %}
-
 class {{ class_name }} ({{ formatted_title }}Client):
-    """{{ metadata.info.description }}"""
-{% for operation in operations %}
-    def {{ operation.operationId }}(
+    """{{ class_docstring }}"""
+{% for method in methods %}
+    {%- set method_name = method.method_name %}
+    {%- set required_params = method.required_method_params %}
+    {%- set optional_params = method.optional_method_params %}
+    def {{ method_name }}(
         self,
-        {%- set required_params = operation.parameters | selectattr("required", "equalto", true) | list %}
-        {%- set optional_params = operation.parameters | selectattr("required", "equalto", false) | list %}
-        {%- if operation.request_body and operation.request_body.length_nested_json_schemas == 1 and operation.request_body.nested_json_schemas[0].type == "object" %}
-        {%- set schema = operation.request_body.nested_json_schemas[0] %}
-        {%- set required_props = schema.get("required", []) -%}
-        {%- for prop_name, prop in schema.properties.items() if not prop.nullable -%}
-            {%- set required_props = required_props + [prop_name] -%}
-        {%- endfor -%}
-        {%- set http_param_names = operation.parameters | map(attribute="name") | list %}
-        {%- for param in required_params %}
-        {{ param.name }}: {{ format_type(param.type) }},
+        {%- for required_param in required_params %}
+        {{ required_param.name }}: {{ required_param.type }},
         {%- endfor %}
-        {%- for prop_name, prop in schema.properties.items() %}
-        {%- if prop_name in required_props and prop_name not in http_param_names %}
-        {{ prop_name }}: {{ format_type(prop) }},
-        {%- endif %}
+        {%- for optional_param in optional_params %}
+        {{ optional_param.name }}: Optional[{{ optional_param.type }}] = None,
         {%- endfor %}
-        {%- for param in optional_params %}
-        {{ param.name }}: Optional[{{ format_type(param.type) }}] = None,
-        {%- endfor %}
-        {%- for prop_name, prop in schema.properties.items() %}
-        {%- if prop_name not in required_props and prop_name not in http_param_names %}
-        {{ prop_name }}: Optional[{{ format_type(prop) }}] = None,
-        {%- endif %}
-        {%- endfor %}
-        {%- else %}
-        {%- for param in required_params %}
-        {{ param.name }}: {{ format_type(param.type) }},
-        {%- endfor %}
-        {%- if operation.request_body and operation.request_body.required %}
-        request_body: {{ format_type(operation.request_body.type) }},
-        {%- endif %}
-        {%- for param in optional_params %}
-        {{ param.name }}: Optional[{{ format_type(param.type) }}] = None,
-        {%- endfor %}
-        {%- if operation.request_body and not operation.request_body.required %}
-        request_body: Optional[{{ format_type(operation.request_body.type) }}] = None,
-        {%- endif %}
-        {%- endif %}
     ) -> Any:
         """
-        {{ operation.description }}
-        {%- if operation.parameters or operation.request_body %}
+        {{ method.description }}
+        {%- if method.required_method_params or method.optional_method_params or method.request_body %}
 
         Args:
-            {%- for param in required_params %}
-            {{ param.name }}: {{ param.description }}
+            {%- for required_param in required_params %}
+            {{ required_param.name }}: {{ required_param.description }}
             {%- endfor %}
-            {%- if operation.request_body and operation.request_body.length_nested_json_schemas == 1 and operation.request_body.nested_json_schemas[0].type == "object" %}
-            {%- set schema = operation.request_body.nested_json_schemas[0] %}
-            {%- set required_props = schema.get("required", []) -%}
-            {%- for prop_name, prop in schema.properties.items() if not prop.nullable -%}
-                {%- set required_props = required_props + [prop_name] -%}
-            {%- endfor -%}
-            {%- for prop_name, prop in schema.properties.items() %}
-            {%- if prop_name in required_props and prop_name not in http_param_names %}
-            {%- if prop and prop.length_nested_json_schemas == 1 and prop.nested_json_schemas[0].type %}
-            {%- set schema = prop.nested_json_schemas[0] %}
-            {{ prop_name }}: {{ schema.description or prop.description or "No description provided" }}
-            {%- else %}
-            {{ prop_name }}: {{ prop.description or "No description provided" }}
-            {%- endif %}
-            {%- endif %}
+            {%- for optional_param in optional_params %}
+            {{ optional_param.name }}: {{ optional_param.description }}
             {%- endfor %}
-            {%- for param in optional_params %}
-            {{ param.name }}: {{ param.description }}
-            {%- endfor %}
-            {%- for prop_name, prop in schema.properties.items() %}
-            {%- if prop_name not in required_props and prop_name not in http_param_names %}
-            {%- if prop and prop.length_nested_json_schemas == 1 and prop.nested_json_schemas[0].type %}
-            {%- set schema = prop.nested_json_schemas[0] %}
-            {{ prop_name }}: {{ schema.description or prop.description or "No description provided" }}
-            {%- else %}
-            {{ prop_name }}: {{ prop.description or "No description provided" }}
-            {%- endif %}
-            {%- endif %}
-            {%- endfor %}
-            {%- else %}
-            {%- if operation.request_body and operation.request_body.required %}
-            request_body: {{ operation.request_body.description if operation.request_body.description else "Request body" }}
-            {%- endif %}
-            {%- for param in optional_params %}
-            {{ param.name }}: {{ param.description }}
-            {%- endfor %}
-            {%- if operation.request_body and not operation.request_body.required %}
-            request_body: {{ operation.request_body.description if operation.request_body.description else "Request body" }}
-            {%- endif %}
-            {%- endif %}
         {%- endif %}
 
         Returns:
             Response data
         """
+{% endfor %}
+{% for operation in operations %}
         path = f"{{ operation.path }}"
         {%- if operation.parameters %}
         params = {}

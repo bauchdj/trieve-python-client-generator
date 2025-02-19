@@ -41,10 +41,12 @@ class OpenAPIParser:
         openapi = self.openapi_spec.get("openapi", "")
         info = self.openapi_spec.get("info", {})
         servers = self.openapi_spec.get("servers", [])
+        tags = self.components.get("tags", [])
         return OpenAPIMetadata(
             openapi=openapi,
             info=info,
             servers=servers,
+            tags=tags,
             headers=headers,
             operations=operations,
             source_file=self.openapi_path
@@ -88,12 +90,12 @@ class OpenAPIParser:
             params.append(HttpParameter(**param_data))
         return params
 
-    def _parse_request_body(self, request_body: Dict[str, Any]) -> Union[SchemaMetadata, bool]:
+    def _parse_request_body(self, request_body: Dict[str, Any]) -> Union[SchemaMetadata, None]:
         """
         Extract and format request body details.
         """
         if not request_body:
-            return False
+            return None 
 
         content = request_body.get("content", {})
         json_schema = content.get("application/json", {}).get("schema", {})
@@ -182,7 +184,7 @@ class OpenAPIParser:
         for k, value in d.items():
             if k in ["$ref", "allOf", "oneOf", "anyOf", "not"]:
                 schema_metadata = self._schema_metadata(d)
-                parent[key] = schema_metadata
+                parent[key] = schema_metadata.model_dump()
             elif isinstance(value, dict):
                 self._traverse_dict(d=value, key=k, parent=d)
             elif isinstance(value, list):

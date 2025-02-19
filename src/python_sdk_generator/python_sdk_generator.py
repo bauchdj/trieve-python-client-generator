@@ -1,13 +1,15 @@
 import json
+from os import name
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import click
 from jinja2 import Environment, FileSystemLoader
 
+from .models.model_client import ClientPyJinja, MethodMetadata, MethodParameter
 from ..openapi_parser.openapi_parser import OpenAPIParser
-from ..openapi_parser.models import OpenAPIMetadata, Operation, SchemaMetadata
+from ..openapi_parser.models import HttpParameter, OpenAPIMetadata, Operation, SchemaMetadata
 
 class SDKGenerator:
     def __init__(
@@ -111,12 +113,114 @@ class SDKGenerator:
         ]
         subprocess.run(cmd, check=True)
 
-    def _generate_client_class(self, tag: str, operations: List[Operation]) -> str:
+    def format_type(self, type_info: Union[Dict, str, None]) -> str:
+        resolved_type: str = "Any"
+        if type_info is None:
+            pass
+        elif isinstance(type_info, str) and type_info not in ["object", "array"]:
+            resolved_type = self._clean_type_name(type_info)
+        elif isinstance(type_info, dict):
+            if "$ref" in type_info:
+                resolved_type = type_info["$ref"].split("/")[-1]
+            elif type_info.get("type") == "array":
+                resolved_type = f"List[{self.format_type(type_info.get('items', {}))}]"
+            elif "type" in type_info and type_info["type"] not in ["object", "array"]:
+                resolved_type = self._clean_type_name(type_info["type"])
+            elif "allOf" in type_info:
+                # TODO fix this when it hits
+                # not hitting...
+                resolved_type = " & ".join(
+                    self.format_type(item) if isinstance(item, dict) and "$ref" not in item else item["$ref"].split("/")[-1]
+                    for item in type_info["allOf"]
+                )
+            elif "oneOf" in type_info:
+                # not hitting...
+                resolved_type = f"Union[{', '.join(self.format_type(item) for item in type_info['oneOf'])}]"
+            elif "anyOf" in type_info:
+                # not hitting...
+                resolved_type = f"Union[{', '.join(self.format_type(item) for item in type_info['anyOf'])}]"
+            elif "not" in type_info:
+                # not hitting...
+                resolved_type = "Any"
+            else:
+                pass
+        else:
+            pass
+
+        # print("END", resolved_type)
+        return resolved_type
+
+    def _get_single_nested_schema(self, schema: Union[SchemaMetadata, None]) -> SchemaMetadata:
+        if schema is None:
+            return None
+        if schema.length_nested_json_schemas != 1:
+            return schema
+        nested_schema = schema.nested_json_schemas[0]
+        if nested_schema:
+            return nested_schema
+        return schema
+
+    def _method_params_from_http_params(self, http_params: List[HttpParameter], cond: Callable[[HttpParameter], bool]) -> List[MethodParameter]:
+        """
+        Returns a list of MethodParameter objects based on the given condition.
+        """
+        return [
+            MethodParameter(
+                name=http_param.name, 
+                original_name=http_param.original_name, 
+                type=self.format_type(http_param.type),
+                docstring=http_param.description,
+            )
+            for http_param in http_params if cond(http_param) 
+        ]
+
+    def _method_params_from_schema_props(self, schema: SchemaMetadata, props: List[Dict[str, Any]], cond: Callable[[str, Dict[str, Any]], bool]) -> List[MethodParameter]:
+        default_description = "No description provided"
+        # schema_type = self.format_type(schema)
+        return [
+            MethodParameter(
+                name=prop_name,
+                type=self.format_type(prop),
+                docstring=schema.get("description", default_description) or prop.get("description", default_description),
+            )
+            for prop_name, prop in props.items() if cond(prop_name, prop) 
+        ]
+
+    def _method_param_from_request_body(self, request_body: SchemaMetadata) -> List[MethodParameter]:
+        return [
+            MethodParameter(
+                name="request_body",
+                type=self.format_type(request_body.get("type", None)),
+                docstring=request_body.get("description", "Request body")
+            )
+        ]
+    
+    def _resolve_method_params(self, operation: Operation, schema:  Union[Dict[str, Any], None]) -> Tuple[List[MethodParameter], List[MethodParameter]]:
+        required_http_params: List[MethodParameter] = self._method_params_from_http_params(operation.parameters, lambda http_param: http_param.required == True)
+        optional_http_params: List[MethodParameter] = self._method_params_from_http_params(operation.parameters, lambda http_param: http_param.required != True)
+        http_param_names = [param.name for param in operation.parameters]
+
+        required_schema_props: List[MethodParameter] = []
+        optional_schema_props: List[MethodParameter] = []
+        if schema is not None:
+            schema_props = schema.get("properties", None)
+            # if not isinstance(schema, SchemaMetadata):
+            if schema_props:
+                required_schema_props += self._method_params_from_schema_props(schema, schema_props, lambda prop_name, prop: prop.get("required", False) == True and prop_name not in http_param_names)
+                optional_schema_props += self._method_params_from_schema_props(schema, schema_props, lambda prop_name, prop: prop.get("required", False) != True and prop_name not in http_param_names)
+            elif schema.get("required", False):
+                required_schema_props += self._method_param_from_request_body(schema)
+            else:
+                optional_schema_props += self._method_param_from_request_body(schema)
+
+        required_method_params = required_http_params + required_schema_props
+        optional_method_params = optional_http_params + optional_schema_props
+
+        return [required_method_params, optional_method_params]
+
+    def _generate_client_class(self, tag: str, tag_description: str, operations: List[Operation]) -> str:
         """Generate a client class for a specific tag"""
         template = self.env.get_template("client.py.jinja")
-        class_name = self._clean_name(tag) + "Client"
-        formatted_title = self.metadata.info.title.replace(" ", "").replace("-", "")
-        formatted_import_path = self.metadata.info.title.lower().replace(" ", "_")
 
         for op in operations:
             for param in op.parameters:
@@ -128,17 +232,51 @@ class SDKGenerator:
                 op.request_body.type = self._clean_type_name(op.request_body.type)
 
         # removes nested models for jinja templating. SchemaMetadata model is causing 'is mapping' to be False when it should be True in jinja
-        operations = [op.model_dump() for op in operations]
-        metadata = self.metadata.model_dump()
+        # operations = [op.model_dump() for op in operations]
+        # metadata = self.metadata.model_dump()
 
-        return template.render(
-            tag=tag,
-            operations=operations,
-            metadata=metadata,
+        class_name = self._clean_name(tag) + "Client"
+        formatted_title = self.metadata.info.title.replace(" ", "").replace("-", "")
+        formatted_import_path = self.metadata.info.title.lower().replace(" ", "_")
+        class_docstring = tag_description or self.metadata.info.description
+
+        methods: List[MethodMetadata] = []
+        for op in operations:
+            schema: Union[SchemaMetadata, None] = self._get_single_nested_schema(op.request_body)
+            if isinstance(schema, SchemaMetadata):
+                schema = schema.model_dump()
+            required_method_params, optional_method_params = self._resolve_method_params(op, schema)
+            # http_params = op.parameters
+            request_body = op.request_body
+            methods.append(
+                MethodMetadata(
+                    method_name=op.operationId,
+                    required_method_params=required_method_params,
+                    optional_method_params=optional_method_params,
+                    path=op.path,
+                    request_body=request_body,
+                )
+            )
+        # methods = [m.model_dump() for m in methods]
+
+        template_metadata = ClientPyJinja(
+            parent_class_formatted_import_path=formatted_import_path,
+            parent_class_formatted_name=formatted_title,
             class_name=class_name,
-            formatted_title=formatted_title,
-            formatted_import_path=formatted_import_path,
+            class_docstring=class_docstring,
+            methods=methods
         )
+
+        return template.render(template_metadata.model_dump())
+
+        # return template.render(
+        #     tag=tag,
+        #     operations=operations,
+        #     metadata=metadata,
+        #     class_name=class_name,
+        #     formatted_title=formatted_title,
+        #     formatted_import_path=formatted_import_path,
+        # )
 
     def _generate_base_client(self) -> str:
         """Generate the base client class"""
@@ -162,6 +300,12 @@ class SDKGenerator:
             metadata=self.metadata,
             operations_by_tag=self._group_operations_by_tag()
         )
+
+    def _get_tag_description(self, tag: str) -> Union[str, None]:
+        for t in self.metadata.tags:
+            if t == tag:
+                return t.description
+        return None
 
     def generate(self):
         """Generate the complete SDK"""
@@ -190,7 +334,8 @@ class SDKGenerator:
             tag_dir = src_dir / tag
             tag_dir.mkdir(exist_ok=True)
             client_path = tag_dir / f"{tag}_client.py"
-            client_content = self._generate_client_class(tag, operations)
+            tag_description = self._get_tag_description(tag) 
+            client_content = self._generate_client_class(tag, tag_description, operations)
             client_path.write_text(client_content)
 
             if self.generate_tests:
