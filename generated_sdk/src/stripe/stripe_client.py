@@ -2,7 +2,8 @@ from typing import Any, Dict, List, Optional, Union
 from ..trieve_api_client import TrieveAPIClient
 from ...models.models import *
 
-class StripeClient (TrieveAPIClient):
+
+class StripeClient(TrieveAPIClient):
     """Trieve OpenAPI Specification. This document describes all of the operations available through the Trieve API."""
 
     def create_setup_checkout_session(

@@ -2,7 +2,8 @@ from typing import Any, Dict, List, Optional, Union
 from ..trieve_api_client import TrieveAPIClient
 from ...models.models import *
 
-class AnalyticsClient (TrieveAPIClient):
+
+class AnalyticsClient(TrieveAPIClient):
     """Trieve OpenAPI Specification. This document describes all of the operations available through the Trieve API."""
 
     def send_ctr_data(
@@ -36,8 +37,14 @@ class AnalyticsClient (TrieveAPIClient):
         if tr_dataset is not None:
             headers["TR-Dataset"] = tr_dataset
         json_data = {
-            "clicked_chunk_id": clicked_chunk_id if clicked_chunk_id is not None else None,
-            "clicked_chunk_tracking_id": clicked_chunk_tracking_id if clicked_chunk_tracking_id is not None else None,
+            "clicked_chunk_id": (
+                clicked_chunk_id if clicked_chunk_id is not None else None
+            ),
+            "clicked_chunk_tracking_id": (
+                clicked_chunk_tracking_id
+                if clicked_chunk_tracking_id is not None
+                else None
+            ),
             "ctr_type": ctr_type if ctr_type is not None else None,
             "metadata": metadata if metadata is not None else None,
             "position": position if position is not None else None,

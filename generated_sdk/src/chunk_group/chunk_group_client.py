@@ -2,7 +2,8 @@ from typing import Any, Dict, List, Optional, Union
 from ..trieve_api_client import TrieveAPIClient
 from ...models.models import *
 
-class ChunkGroupClient (TrieveAPIClient):
+
+class ChunkGroupClient(TrieveAPIClient):
     """Trieve OpenAPI Specification. This document describes all of the operations available through the Trieve API."""
 
     def create_chunk_group(
@@ -48,21 +49,21 @@ class ChunkGroupClient (TrieveAPIClient):
         update_chunks: Optional[bool] = None,
     ) -> Any:
         """
-        Update a chunk_group. One of group_id or tracking_id must be provided. If you try to change the tracking_id to one that already exists, this operation will fail. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+                Update a chunk_group. One of group_id or tracking_id must be provided. If you try to change the tracking_id to one that already exists, this operation will fail. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
-        Args:
-            tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
-            description: Description to assign to the chunk_group. Convenience field for you to avoid having to remember what the group is for. If not provided, the description will not be updated.
-            group_id: Id of the chunk_group to update.
-            metadata: Optional metadata to assign to the chunk_group. This is a JSON object that can store any additional information you want to associate with the chunks inside of the chunk_group.
-            name: Name to assign to the chunk_group. Does not need to be unique. If not provided, the name will not be updated.
-            tag_set: Optional tags to assign to the chunk_group. This is a list of strings that can be used to categorize the chunks inside the chunk_group.
-            tracking_id: Tracking Id of the chunk_group to update.
-            update_chunks: Flag to update the chunks in the group. If true, each chunk in the group will be updated
-by appending the group's tags to the chunk's tags. Default is false.
+                Args:
+                    tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
+                    description: Description to assign to the chunk_group. Convenience field for you to avoid having to remember what the group is for. If not provided, the description will not be updated.
+                    group_id: Id of the chunk_group to update.
+                    metadata: Optional metadata to assign to the chunk_group. This is a JSON object that can store any additional information you want to associate with the chunks inside of the chunk_group.
+                    name: Name to assign to the chunk_group. Does not need to be unique. If not provided, the name will not be updated.
+                    tag_set: Optional tags to assign to the chunk_group. This is a list of strings that can be used to categorize the chunks inside the chunk_group.
+                    tracking_id: Tracking Id of the chunk_group to update.
+                    update_chunks: Flag to update the chunks in the group. If true, each chunk in the group will be updated
+        by appending the group's tags to the chunk's tags. Default is false.
 
-        Returns:
-            Response data
+                Returns:
+                    Response data
         """
         path = f"/api/chunk_group"
         params = {}
@@ -115,7 +116,9 @@ by appending the group's tags to the chunk's tags. Default is false.
             headers["TR-Dataset"] = tr_dataset
         json_data = {
             "chunk_id": chunk_id if chunk_id is not None else None,
-            "chunk_tracking_id": chunk_tracking_id if chunk_tracking_id is not None else None,
+            "chunk_tracking_id": (
+                chunk_tracking_id if chunk_tracking_id is not None else None
+            ),
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
 
@@ -190,7 +193,9 @@ by appending the group's tags to the chunk's tags. Default is false.
             headers["TR-Dataset"] = tr_dataset
         json_data = {
             "chunk_ids": chunk_ids if chunk_ids is not None else None,
-            "chunk_tracking_ids": chunk_tracking_ids if chunk_tracking_ids is not None else None,
+            "chunk_tracking_ids": (
+                chunk_tracking_ids if chunk_tracking_ids is not None else None
+            ),
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
 
@@ -227,7 +232,9 @@ by appending the group's tags to the chunk's tags. Default is false.
             headers["TR-Dataset"] = tr_dataset
         json_data = {
             "group_id": group_id if group_id is not None else None,
-            "group_tracking_id": group_tracking_id if group_tracking_id is not None else None,
+            "group_tracking_id": (
+                group_tracking_id if group_tracking_id is not None else None
+            ),
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
 
@@ -261,30 +268,30 @@ by appending the group's tags to the chunk's tags. Default is false.
         user_id: Optional[str] = None,
     ) -> Any:
         """
-        This route allows you to get groups as results instead of chunks. Each group returned will have the matching chunks sorted by similarity within the group. This is useful for when you want to get groups of chunks which are similar to the search query. If choosing hybrid search, the top chunk of each group will be re-ranked using scores from a cross encoder model. Compatible with semantic, fulltext, or hybrid search modes.
+                This route allows you to get groups as results instead of chunks. Each group returned will have the matching chunks sorted by similarity within the group. This is useful for when you want to get groups of chunks which are similar to the search query. If choosing hybrid search, the top chunk of each group will be re-ranked using scores from a cross encoder model. Compatible with semantic, fulltext, or hybrid search modes.
 
-        Args:
-            tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
-            query: No description provided
-            search_type: No description provided
-            x_api_version: The API version to use for this request. Defaults to V2 for orgs created after July 12, 2024 and V1 otherwise.
-            filters: ChunkFilter is a JSON object which can be used to filter chunks. This is useful for when you want to filter chunks by arbitrary metadata. Unlike with tag filtering, there is a performance hit for filtering on metadata.
-            get_total_pages: Get total page count for the query accounting for the applied filters. Defaults to false, but can be set to true when the latency penalty is acceptable (typically 50-200ms).
-            group_size: Group_size is the number of chunks to fetch for each group. The default is 3. If a group has less than group_size chunks, all chunks will be returned. If this is set to a large number, we recommend setting slim_chunks to true to avoid returning the content and chunk_html of the chunks so as to lower the amount of time required for content download and serialization.
-            highlight_options: Highlight Options lets you specify different methods to highlight the chunks in the result set. If not specified, this defaults to the score of the chunks.
-            page: Page of group results to fetch. Page is 1-indexed.
-            page_size: Page size is the number of group results to fetch. The default is 10.
-            remove_stop_words: If true, stop words (specified in server/src/stop-words.txt in the git repo) will be removed. Queries that are entirely stop words will be
-preserved.
-            score_threshold: Set score_threshold to a float to filter out chunks with a score below the threshold. This threshold applies before weight and bias modifications. If not specified, this defaults to 0.0.
-            slim_chunks: Set slim_chunks to true to avoid returning the content and chunk_html of the chunks. This is useful for when you want to reduce amount of data over the wire for latency improvement (typicall 10-50ms). Default is false.
-            sort_options: Sort Options lets you specify different methods to rerank the chunks in the result set. If not specified, this defaults to the score of the chunks.
-            typo_options: Typo Options lets you specify different methods to correct typos in the query. If not specified, typos will not be corrected.
-            use_quote_negated_terms: If true, quoted and - prefixed words will be parsed from the queries and used as required and negated words respectively. Default is false.
-            user_id: The user_id is the id of the user who is making the request. This is used to track user interactions with the search results.
+                Args:
+                    tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
+                    query: No description provided
+                    search_type: No description provided
+                    x_api_version: The API version to use for this request. Defaults to V2 for orgs created after July 12, 2024 and V1 otherwise.
+                    filters: ChunkFilter is a JSON object which can be used to filter chunks. This is useful for when you want to filter chunks by arbitrary metadata. Unlike with tag filtering, there is a performance hit for filtering on metadata.
+                    get_total_pages: Get total page count for the query accounting for the applied filters. Defaults to false, but can be set to true when the latency penalty is acceptable (typically 50-200ms).
+                    group_size: Group_size is the number of chunks to fetch for each group. The default is 3. If a group has less than group_size chunks, all chunks will be returned. If this is set to a large number, we recommend setting slim_chunks to true to avoid returning the content and chunk_html of the chunks so as to lower the amount of time required for content download and serialization.
+                    highlight_options: Highlight Options lets you specify different methods to highlight the chunks in the result set. If not specified, this defaults to the score of the chunks.
+                    page: Page of group results to fetch. Page is 1-indexed.
+                    page_size: Page size is the number of group results to fetch. The default is 10.
+                    remove_stop_words: If true, stop words (specified in server/src/stop-words.txt in the git repo) will be removed. Queries that are entirely stop words will be
+        preserved.
+                    score_threshold: Set score_threshold to a float to filter out chunks with a score below the threshold. This threshold applies before weight and bias modifications. If not specified, this defaults to 0.0.
+                    slim_chunks: Set slim_chunks to true to avoid returning the content and chunk_html of the chunks. This is useful for when you want to reduce amount of data over the wire for latency improvement (typicall 10-50ms). Default is false.
+                    sort_options: Sort Options lets you specify different methods to rerank the chunks in the result set. If not specified, this defaults to the score of the chunks.
+                    typo_options: Typo Options lets you specify different methods to correct typos in the query. If not specified, typos will not be corrected.
+                    use_quote_negated_terms: If true, quoted and - prefixed words will be parsed from the queries and used as required and negated words respectively. Default is false.
+                    user_id: The user_id is the id of the user who is making the request. This is used to track user interactions with the search results.
 
-        Returns:
-            Response data
+                Returns:
+                    Response data
         """
         path = f"/api/chunk_group/group_oriented_search"
         params = {}
@@ -297,17 +304,23 @@ preserved.
             "filters": filters if filters is not None else None,
             "get_total_pages": get_total_pages if get_total_pages is not None else None,
             "group_size": group_size if group_size is not None else None,
-            "highlight_options": highlight_options if highlight_options is not None else None,
+            "highlight_options": (
+                highlight_options if highlight_options is not None else None
+            ),
             "page": page if page is not None else None,
             "page_size": page_size if page_size is not None else None,
             "query": query if query is not None else None,
-            "remove_stop_words": remove_stop_words if remove_stop_words is not None else None,
+            "remove_stop_words": (
+                remove_stop_words if remove_stop_words is not None else None
+            ),
             "score_threshold": score_threshold if score_threshold is not None else None,
             "search_type": search_type if search_type is not None else None,
             "slim_chunks": slim_chunks if slim_chunks is not None else None,
             "sort_options": sort_options if sort_options is not None else None,
             "typo_options": typo_options if typo_options is not None else None,
-            "use_quote_negated_terms": use_quote_negated_terms if use_quote_negated_terms is not None else None,
+            "use_quote_negated_terms": (
+                use_quote_negated_terms if use_quote_negated_terms is not None else None
+            ),
             "user_id": user_id if user_id is not None else None,
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
@@ -369,10 +382,22 @@ preserved.
             "filters": filters if filters is not None else None,
             "group_size": group_size if group_size is not None else None,
             "limit": limit if limit is not None else None,
-            "negative_group_ids": negative_group_ids if negative_group_ids is not None else None,
-            "negative_group_tracking_ids": negative_group_tracking_ids if negative_group_tracking_ids is not None else None,
-            "positive_group_ids": positive_group_ids if positive_group_ids is not None else None,
-            "positive_group_tracking_ids": positive_group_tracking_ids if positive_group_tracking_ids is not None else None,
+            "negative_group_ids": (
+                negative_group_ids if negative_group_ids is not None else None
+            ),
+            "negative_group_tracking_ids": (
+                negative_group_tracking_ids
+                if negative_group_tracking_ids is not None
+                else None
+            ),
+            "positive_group_ids": (
+                positive_group_ids if positive_group_ids is not None else None
+            ),
+            "positive_group_tracking_ids": (
+                positive_group_tracking_ids
+                if positive_group_tracking_ids is not None
+                else None
+            ),
             "recommend_type": recommend_type if recommend_type is not None else None,
             "slim_chunks": slim_chunks if slim_chunks is not None else None,
             "strategy": strategy if strategy is not None else None,
@@ -450,18 +475,26 @@ preserved.
             "filters": filters if filters is not None else None,
             "get_total_pages": get_total_pages if get_total_pages is not None else None,
             "group_id": group_id if group_id is not None else None,
-            "group_tracking_id": group_tracking_id if group_tracking_id is not None else None,
-            "highlight_options": highlight_options if highlight_options is not None else None,
+            "group_tracking_id": (
+                group_tracking_id if group_tracking_id is not None else None
+            ),
+            "highlight_options": (
+                highlight_options if highlight_options is not None else None
+            ),
             "page": page if page is not None else None,
             "page_size": page_size if page_size is not None else None,
             "query": query if query is not None else None,
-            "remove_stop_words": remove_stop_words if remove_stop_words is not None else None,
+            "remove_stop_words": (
+                remove_stop_words if remove_stop_words is not None else None
+            ),
             "score_threshold": score_threshold if score_threshold is not None else None,
             "search_type": search_type if search_type is not None else None,
             "slim_chunks": slim_chunks if slim_chunks is not None else None,
             "sort_options": sort_options if sort_options is not None else None,
             "typo_options": typo_options if typo_options is not None else None,
-            "use_quote_negated_terms": use_quote_negated_terms if use_quote_negated_terms is not None else None,
+            "use_quote_negated_terms": (
+                use_quote_negated_terms if use_quote_negated_terms is not None else None
+            ),
             "user_id": user_id if user_id is not None else None,
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
@@ -518,15 +551,15 @@ preserved.
         tracking_id: str,
     ) -> Any:
         """
-        Fetch the group with the given tracking id.
-get_group_by_tracking_id
+                Fetch the group with the given tracking id.
+        get_group_by_tracking_id
 
-        Args:
-            tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
-            tracking_id: The tracking id of the group to fetch.
+                Args:
+                    tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
+                    tracking_id: The tracking id of the group to fetch.
 
-        Returns:
-            Response data
+                Returns:
+                    Response data
         """
         path = f"/api/chunk_group/tracking_id/{tracking_id}"
         params = {}
@@ -570,7 +603,9 @@ get_group_by_tracking_id
             headers["TR-Dataset"] = tr_dataset
         json_data = {
             "chunk_id": chunk_id if chunk_id is not None else None,
-            "chunk_tracking_id": chunk_tracking_id if chunk_tracking_id is not None else None,
+            "chunk_tracking_id": (
+                chunk_tracking_id if chunk_tracking_id is not None else None
+            ),
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
 

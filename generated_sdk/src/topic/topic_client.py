@@ -2,7 +2,8 @@ from typing import Any, Dict, List, Optional, Union
 from ..trieve_api_client import TrieveAPIClient
 from ...models.models import *
 
-class TopicClient (TrieveAPIClient):
+
+class TopicClient(TrieveAPIClient):
     """Trieve OpenAPI Specification. This document describes all of the operations available through the Trieve API."""
 
     def create_topic(
@@ -30,7 +31,9 @@ class TopicClient (TrieveAPIClient):
         if tr_dataset is not None:
             headers["TR-Dataset"] = tr_dataset
         json_data = {
-            "first_user_message": first_user_message if first_user_message is not None else None,
+            "first_user_message": (
+                first_user_message if first_user_message is not None else None
+            ),
             "name": name if name is not None else None,
             "owner_id": owner_id if owner_id is not None else None,
         }

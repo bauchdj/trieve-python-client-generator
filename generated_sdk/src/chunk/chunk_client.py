@@ -2,7 +2,8 @@ from typing import Any, Dict, List, Optional, Union
 from ..trieve_api_client import TrieveAPIClient
 from ...models.models import *
 
-class ChunkClient (TrieveAPIClient):
+
+class ChunkClient(TrieveAPIClient):
     """Trieve OpenAPI Specification. This document describes all of the operations available through the Trieve API."""
 
     def create_chunk(
@@ -11,15 +12,15 @@ class ChunkClient (TrieveAPIClient):
         request_body: Optional[CreateChunkReqPayloadEnum] = None,
     ) -> Any:
         """
-        Create new chunk(s). If the chunk has the same tracking_id as an existing chunk, the request will fail. Once a chunk is created, it can be searched for using the search endpoint.
-If uploading in bulk, the maximum amount of chunks that can be uploaded at once is 120 chunks. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
+                Create new chunk(s). If the chunk has the same tracking_id as an existing chunk, the request will fail. Once a chunk is created, it can be searched for using the search endpoint.
+        If uploading in bulk, the maximum amount of chunks that can be uploaded at once is 120 chunks. Auth'ed user or api key must have an admin or owner role for the specified dataset's organization.
 
-        Args:
-            tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
-            request_body: Request body
+                Args:
+                    tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
+                    request_body: Request body
 
-        Returns:
-            Response data
+                Returns:
+                    Response data
         """
         path = f"/api/chunk"
         params = {}
@@ -90,10 +91,14 @@ If uploading in bulk, the maximum amount of chunks that can be uploaded at once 
         json_data = {
             "chunk_html": chunk_html if chunk_html is not None else None,
             "chunk_id": chunk_id if chunk_id is not None else None,
-            "convert_html_to_text": convert_html_to_text if convert_html_to_text is not None else None,
+            "convert_html_to_text": (
+                convert_html_to_text if convert_html_to_text is not None else None
+            ),
             "fulltext_boost": fulltext_boost if fulltext_boost is not None else None,
             "group_ids": group_ids if group_ids is not None else None,
-            "group_tracking_ids": group_tracking_ids if group_tracking_ids is not None else None,
+            "group_tracking_ids": (
+                group_tracking_ids if group_tracking_ids is not None else None
+            ),
             "image_urls": image_urls if image_urls is not None else None,
             "link": link if link is not None else None,
             "location": location if location is not None else None,
@@ -206,17 +211,23 @@ If uploading in bulk, the maximum amount of chunks that can be uploaded at once 
             "content_only": content_only if content_only is not None else None,
             "extend_results": extend_results if extend_results is not None else None,
             "filters": filters if filters is not None else None,
-            "highlight_options": highlight_options if highlight_options is not None else None,
+            "highlight_options": (
+                highlight_options if highlight_options is not None else None
+            ),
             "page_size": page_size if page_size is not None else None,
             "query": query if query is not None else None,
-            "remove_stop_words": remove_stop_words if remove_stop_words is not None else None,
+            "remove_stop_words": (
+                remove_stop_words if remove_stop_words is not None else None
+            ),
             "score_threshold": score_threshold if score_threshold is not None else None,
             "scoring_options": scoring_options if scoring_options is not None else None,
             "search_type": search_type if search_type is not None else None,
             "slim_chunks": slim_chunks if slim_chunks is not None else None,
             "sort_options": sort_options if sort_options is not None else None,
             "typo_options": typo_options if typo_options is not None else None,
-            "use_quote_negated_terms": use_quote_negated_terms if use_quote_negated_terms is not None else None,
+            "use_quote_negated_terms": (
+                use_quote_negated_terms if use_quote_negated_terms is not None else None
+            ),
             "user_id": user_id if user_id is not None else None,
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
@@ -266,7 +277,9 @@ If uploading in bulk, the maximum amount of chunks that can be uploaded at once 
             "query": query if query is not None else None,
             "score_threshold": score_threshold if score_threshold is not None else None,
             "search_type": search_type if search_type is not None else None,
-            "use_quote_negated_terms": use_quote_negated_terms if use_quote_negated_terms is not None else None,
+            "use_quote_negated_terms": (
+                use_quote_negated_terms if use_quote_negated_terms is not None else None
+            ),
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
 
@@ -331,12 +344,18 @@ If uploading in bulk, the maximum amount of chunks that can be uploaded at once 
             "audio_input": audio_input if audio_input is not None else None,
             "chunk_ids": chunk_ids if chunk_ids is not None else None,
             "context_options": context_options if context_options is not None else None,
-            "frequency_penalty": frequency_penalty if frequency_penalty is not None else None,
-            "highlight_results": highlight_results if highlight_results is not None else None,
+            "frequency_penalty": (
+                frequency_penalty if frequency_penalty is not None else None
+            ),
+            "highlight_results": (
+                highlight_results if highlight_results is not None else None
+            ),
             "image_config": image_config if image_config is not None else None,
             "image_urls": image_urls if image_urls is not None else None,
             "max_tokens": max_tokens if max_tokens is not None else None,
-            "presence_penalty": presence_penalty if presence_penalty is not None else None,
+            "presence_penalty": (
+                presence_penalty if presence_penalty is not None else None
+            ),
             "prev_messages": prev_messages if prev_messages is not None else None,
             "prompt": prompt if prompt is not None else None,
             "stop_tokens": stop_tokens if stop_tokens is not None else None,
@@ -400,10 +419,18 @@ If uploading in bulk, the maximum amount of chunks that can be uploaded at once 
         json_data = {
             "filters": filters if filters is not None else None,
             "limit": limit if limit is not None else None,
-            "negative_chunk_ids": negative_chunk_ids if negative_chunk_ids is not None else None,
-            "negative_tracking_ids": negative_tracking_ids if negative_tracking_ids is not None else None,
-            "positive_chunk_ids": positive_chunk_ids if positive_chunk_ids is not None else None,
-            "positive_tracking_ids": positive_tracking_ids if positive_tracking_ids is not None else None,
+            "negative_chunk_ids": (
+                negative_chunk_ids if negative_chunk_ids is not None else None
+            ),
+            "negative_tracking_ids": (
+                negative_tracking_ids if negative_tracking_ids is not None else None
+            ),
+            "positive_chunk_ids": (
+                positive_chunk_ids if positive_chunk_ids is not None else None
+            ),
+            "positive_tracking_ids": (
+                positive_tracking_ids if positive_tracking_ids is not None else None
+            ),
             "recommend_type": recommend_type if recommend_type is not None else None,
             "slim_chunks": slim_chunks if slim_chunks is not None else None,
             "strategy": strategy if strategy is not None else None,
@@ -478,18 +505,24 @@ If uploading in bulk, the maximum amount of chunks that can be uploaded at once 
             "content_only": content_only if content_only is not None else None,
             "filters": filters if filters is not None else None,
             "get_total_pages": get_total_pages if get_total_pages is not None else None,
-            "highlight_options": highlight_options if highlight_options is not None else None,
+            "highlight_options": (
+                highlight_options if highlight_options is not None else None
+            ),
             "page": page if page is not None else None,
             "page_size": page_size if page_size is not None else None,
             "query": query if query is not None else None,
-            "remove_stop_words": remove_stop_words if remove_stop_words is not None else None,
+            "remove_stop_words": (
+                remove_stop_words if remove_stop_words is not None else None
+            ),
             "score_threshold": score_threshold if score_threshold is not None else None,
             "scoring_options": scoring_options if scoring_options is not None else None,
             "search_type": search_type if search_type is not None else None,
             "slim_chunks": slim_chunks if slim_chunks is not None else None,
             "sort_options": sort_options if sort_options is not None else None,
             "typo_options": typo_options if typo_options is not None else None,
-            "use_quote_negated_terms": use_quote_negated_terms if use_quote_negated_terms is not None else None,
+            "use_quote_negated_terms": (
+                use_quote_negated_terms if use_quote_negated_terms is not None else None
+            ),
             "user_id": user_id if user_id is not None else None,
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
@@ -510,25 +543,29 @@ If uploading in bulk, the maximum amount of chunks that can be uploaded at once 
         heading_remove_strings: Optional[List[str]] = None,
     ) -> Any:
         """
-        This endpoint receives a single html string and splits it into chunks based on the headings and
-body content. The headings are split based on heading html tags. chunk_html has a maximum size
-of 256Kb.
+                This endpoint receives a single html string and splits it into chunks based on the headings and
+        body content. The headings are split based on heading html tags. chunk_html has a maximum size
+        of 256Kb.
 
-        Args:
-            chunk_html: The HTML content to be split into chunks
-            body_remove_strings: Text strings to remove from body when creating chunks for each page
-            heading_remove_strings: Text strings to remove from headings when creating chunks for each page
+                Args:
+                    chunk_html: The HTML content to be split into chunks
+                    body_remove_strings: Text strings to remove from body when creating chunks for each page
+                    heading_remove_strings: Text strings to remove from headings when creating chunks for each page
 
-        Returns:
-            Response data
+                Returns:
+                    Response data
         """
         path = f"/api/chunk/split"
         params = None
         headers = None
         json_data = {
-            "body_remove_strings": body_remove_strings if body_remove_strings is not None else None,
+            "body_remove_strings": (
+                body_remove_strings if body_remove_strings is not None else None
+            ),
             "chunk_html": chunk_html if chunk_html is not None else None,
-            "heading_remove_strings": heading_remove_strings if heading_remove_strings is not None else None,
+            "heading_remove_strings": (
+                heading_remove_strings if heading_remove_strings is not None else None
+            ),
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
 
@@ -577,7 +614,9 @@ of 256Kb.
             "query": query if query is not None else None,
             "search_type": search_type if search_type is not None else None,
             "suggestion_type": suggestion_type if suggestion_type is not None else None,
-            "suggestions_to_create": suggestions_to_create if suggestions_to_create is not None else None,
+            "suggestions_to_create": (
+                suggestions_to_create if suggestions_to_create is not None else None
+            ),
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
 
@@ -628,9 +667,13 @@ of 256Kb.
             headers["TR-Dataset"] = tr_dataset
         json_data = {
             "chunk_html": chunk_html if chunk_html is not None else None,
-            "convert_html_to_text": convert_html_to_text if convert_html_to_text is not None else None,
+            "convert_html_to_text": (
+                convert_html_to_text if convert_html_to_text is not None else None
+            ),
             "group_ids": group_ids if group_ids is not None else None,
-            "group_tracking_ids": group_tracking_ids if group_tracking_ids is not None else None,
+            "group_tracking_ids": (
+                group_tracking_ids if group_tracking_ids is not None else None
+            ),
             "link": link if link is not None else None,
             "metadata": metadata if metadata is not None else None,
             "time_stamp": time_stamp if time_stamp is not None else None,

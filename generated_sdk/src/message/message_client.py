@@ -2,7 +2,8 @@ from typing import Any, Dict, List, Optional, Union
 from ..trieve_api_client import TrieveAPIClient
 from ...models.models import *
 
-class MessageClient (TrieveAPIClient):
+
+class MessageClient(TrieveAPIClient):
     """Trieve OpenAPI Specification. This document describes all of the operations available through the Trieve API."""
 
     def create_message(
@@ -61,22 +62,36 @@ class MessageClient (TrieveAPIClient):
             headers["TR-Dataset"] = tr_dataset
         json_data = {
             "audio_input": audio_input if audio_input is not None else None,
-            "concat_user_messages_query": concat_user_messages_query if concat_user_messages_query is not None else None,
+            "concat_user_messages_query": (
+                concat_user_messages_query
+                if concat_user_messages_query is not None
+                else None
+            ),
             "context_options": context_options if context_options is not None else None,
             "filters": filters if filters is not None else None,
-            "highlight_options": highlight_options if highlight_options is not None else None,
+            "highlight_options": (
+                highlight_options if highlight_options is not None else None
+            ),
             "image_urls": image_urls if image_urls is not None else None,
             "llm_options": llm_options if llm_options is not None else None,
-            "new_message_content": new_message_content if new_message_content is not None else None,
-            "no_result_message": no_result_message if no_result_message is not None else None,
-            "only_include_docs_used": only_include_docs_used if only_include_docs_used is not None else None,
+            "new_message_content": (
+                new_message_content if new_message_content is not None else None
+            ),
+            "no_result_message": (
+                no_result_message if no_result_message is not None else None
+            ),
+            "only_include_docs_used": (
+                only_include_docs_used if only_include_docs_used is not None else None
+            ),
             "page_size": page_size if page_size is not None else None,
             "score_threshold": score_threshold if score_threshold is not None else None,
             "search_query": search_query if search_query is not None else None,
             "search_type": search_type if search_type is not None else None,
             "sort_options": sort_options if sort_options is not None else None,
             "topic_id": topic_id if topic_id is not None else None,
-            "use_group_search": use_group_search if use_group_search is not None else None,
+            "use_group_search": (
+                use_group_search if use_group_search is not None else None
+            ),
             "user_id": user_id if user_id is not None else None,
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
@@ -148,23 +163,39 @@ class MessageClient (TrieveAPIClient):
             headers["TR-Dataset"] = tr_dataset
         json_data = {
             "audio_input": audio_input if audio_input is not None else None,
-            "concat_user_messages_query": concat_user_messages_query if concat_user_messages_query is not None else None,
+            "concat_user_messages_query": (
+                concat_user_messages_query
+                if concat_user_messages_query is not None
+                else None
+            ),
             "context_options": context_options if context_options is not None else None,
             "filters": filters if filters is not None else None,
-            "highlight_options": highlight_options if highlight_options is not None else None,
+            "highlight_options": (
+                highlight_options if highlight_options is not None else None
+            ),
             "image_urls": image_urls if image_urls is not None else None,
             "llm_options": llm_options if llm_options is not None else None,
-            "message_sort_order": message_sort_order if message_sort_order is not None else None,
-            "new_message_content": new_message_content if new_message_content is not None else None,
-            "no_result_message": no_result_message if no_result_message is not None else None,
-            "only_include_docs_used": only_include_docs_used if only_include_docs_used is not None else None,
+            "message_sort_order": (
+                message_sort_order if message_sort_order is not None else None
+            ),
+            "new_message_content": (
+                new_message_content if new_message_content is not None else None
+            ),
+            "no_result_message": (
+                no_result_message if no_result_message is not None else None
+            ),
+            "only_include_docs_used": (
+                only_include_docs_used if only_include_docs_used is not None else None
+            ),
             "page_size": page_size if page_size is not None else None,
             "score_threshold": score_threshold if score_threshold is not None else None,
             "search_query": search_query if search_query is not None else None,
             "search_type": search_type if search_type is not None else None,
             "sort_options": sort_options if sort_options is not None else None,
             "topic_id": topic_id if topic_id is not None else None,
-            "use_group_search": use_group_search if use_group_search is not None else None,
+            "use_group_search": (
+                use_group_search if use_group_search is not None else None
+            ),
             "user_id": user_id if user_id is not None else None,
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
@@ -227,20 +258,32 @@ class MessageClient (TrieveAPIClient):
         if tr_dataset is not None:
             headers["TR-Dataset"] = tr_dataset
         json_data = {
-            "concat_user_messages_query": concat_user_messages_query if concat_user_messages_query is not None else None,
+            "concat_user_messages_query": (
+                concat_user_messages_query
+                if concat_user_messages_query is not None
+                else None
+            ),
             "context_options": context_options if context_options is not None else None,
             "filters": filters if filters is not None else None,
-            "highlight_options": highlight_options if highlight_options is not None else None,
+            "highlight_options": (
+                highlight_options if highlight_options is not None else None
+            ),
             "llm_options": llm_options if llm_options is not None else None,
-            "no_result_message": no_result_message if no_result_message is not None else None,
-            "only_include_docs_used": only_include_docs_used if only_include_docs_used is not None else None,
+            "no_result_message": (
+                no_result_message if no_result_message is not None else None
+            ),
+            "only_include_docs_used": (
+                only_include_docs_used if only_include_docs_used is not None else None
+            ),
             "page_size": page_size if page_size is not None else None,
             "score_threshold": score_threshold if score_threshold is not None else None,
             "search_query": search_query if search_query is not None else None,
             "search_type": search_type if search_type is not None else None,
             "sort_options": sort_options if sort_options is not None else None,
             "topic_id": topic_id if topic_id is not None else None,
-            "use_group_search": use_group_search if use_group_search is not None else None,
+            "use_group_search": (
+                use_group_search if use_group_search is not None else None
+            ),
             "user_id": user_id if user_id is not None else None,
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
@@ -303,20 +346,32 @@ class MessageClient (TrieveAPIClient):
         if tr_dataset is not None:
             headers["TR-Dataset"] = tr_dataset
         json_data = {
-            "concat_user_messages_query": concat_user_messages_query if concat_user_messages_query is not None else None,
+            "concat_user_messages_query": (
+                concat_user_messages_query
+                if concat_user_messages_query is not None
+                else None
+            ),
             "context_options": context_options if context_options is not None else None,
             "filters": filters if filters is not None else None,
-            "highlight_options": highlight_options if highlight_options is not None else None,
+            "highlight_options": (
+                highlight_options if highlight_options is not None else None
+            ),
             "llm_options": llm_options if llm_options is not None else None,
-            "no_result_message": no_result_message if no_result_message is not None else None,
-            "only_include_docs_used": only_include_docs_used if only_include_docs_used is not None else None,
+            "no_result_message": (
+                no_result_message if no_result_message is not None else None
+            ),
+            "only_include_docs_used": (
+                only_include_docs_used if only_include_docs_used is not None else None
+            ),
             "page_size": page_size if page_size is not None else None,
             "score_threshold": score_threshold if score_threshold is not None else None,
             "search_query": search_query if search_query is not None else None,
             "search_type": search_type if search_type is not None else None,
             "sort_options": sort_options if sort_options is not None else None,
             "topic_id": topic_id if topic_id is not None else None,
-            "use_group_search": use_group_search if use_group_search is not None else None,
+            "use_group_search": (
+                use_group_search if use_group_search is not None else None
+            ),
             "user_id": user_id if user_id is not None else None,
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
@@ -363,7 +418,9 @@ class MessageClient (TrieveAPIClient):
             "image_url": image_url if image_url is not None else None,
             "model": model if model is not None else None,
             "tool_function": tool_function if tool_function is not None else None,
-            "user_message_text": user_message_text if user_message_text is not None else None,
+            "user_message_text": (
+                user_message_text if user_message_text is not None else None
+            ),
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
 

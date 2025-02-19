@@ -2,7 +2,8 @@ from typing import Any, Dict, List, Optional, Union
 from ..trieve_api_client import TrieveAPIClient
 from ...models.models import *
 
-class OrganizationClient (TrieveAPIClient):
+
+class OrganizationClient(TrieveAPIClient):
     """Trieve OpenAPI Specification. This document describes all of the operations available through the Trieve API."""
 
     def create_organization(
@@ -59,7 +60,9 @@ class OrganizationClient (TrieveAPIClient):
             headers["TR-Organization"] = tr_organization
         json_data = {
             "name": name if name is not None else None,
-            "partner_configuration": partner_configuration if partner_configuration is not None else None,
+            "partner_configuration": (
+                partner_configuration if partner_configuration is not None else None
+            ),
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
 

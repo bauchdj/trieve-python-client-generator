@@ -2,7 +2,8 @@ from typing import Any, Dict, List, Optional, Union
 from ..trieve_api_client import TrieveAPIClient
 from ...models.models import *
 
-class DatasetClient (TrieveAPIClient):
+
+class DatasetClient(TrieveAPIClient):
     """Trieve OpenAPI Specification. This document describes all of the operations available through the Trieve API."""
 
     def create_dataset(
@@ -31,7 +32,9 @@ class DatasetClient (TrieveAPIClient):
             headers["TR-Organization"] = tr_organization
         json_data = {
             "dataset_name": dataset_name if dataset_name is not None else None,
-            "server_configuration": server_configuration if server_configuration is not None else None,
+            "server_configuration": (
+                server_configuration if server_configuration is not None else None
+            ),
             "tracking_id": tracking_id if tracking_id is not None else None,
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
@@ -77,7 +80,9 @@ class DatasetClient (TrieveAPIClient):
             "dataset_id": dataset_id if dataset_id is not None else None,
             "dataset_name": dataset_name if dataset_name is not None else None,
             "new_tracking_id": new_tracking_id if new_tracking_id is not None else None,
-            "server_configuration": server_configuration if server_configuration is not None else None,
+            "server_configuration": (
+                server_configuration if server_configuration is not None else None
+            ),
             "tracking_id": tracking_id if tracking_id is not None else None,
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
@@ -309,14 +314,14 @@ class DatasetClient (TrieveAPIClient):
         tr_dataset: str,
     ) -> Any:
         """
-        Uses pagefind to index the dataset and store the result into a CDN for retrieval. The auth'ed
-user must be an admin of the organization to create a pagefind index for a dataset.
+                Uses pagefind to index the dataset and store the result into a CDN for retrieval. The auth'ed
+        user must be an admin of the organization to create a pagefind index for a dataset.
 
-        Args:
-            tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
+                Args:
+                    tr_dataset: The dataset id or tracking_id to use for the request. We assume you intend to use an id if the value is a valid uuid.
 
-        Returns:
-            Response data
+                Returns:
+                    Response data
         """
         path = f"/api/dataset/pagefind"
         params = {}

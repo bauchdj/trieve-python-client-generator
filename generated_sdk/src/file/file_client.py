@@ -2,7 +2,8 @@ from typing import Any, Dict, List, Optional, Union
 from ..trieve_api_client import TrieveAPIClient
 from ...models.models import *
 
-class FileClient (TrieveAPIClient):
+
+class FileClient(TrieveAPIClient):
     """Trieve OpenAPI Specification. This document describes all of the operations available through the Trieve API."""
 
     def get_dataset_files_handler(
@@ -89,15 +90,23 @@ class FileClient (TrieveAPIClient):
             "create_chunks": create_chunks if create_chunks is not None else None,
             "description": description if description is not None else None,
             "file_name": file_name if file_name is not None else None,
-            "group_tracking_id": group_tracking_id if group_tracking_id is not None else None,
+            "group_tracking_id": (
+                group_tracking_id if group_tracking_id is not None else None
+            ),
             "link": link if link is not None else None,
             "metadata": metadata if metadata is not None else None,
             "pdf2md_options": pdf2md_options if pdf2md_options is not None else None,
-            "rebalance_chunks": rebalance_chunks if rebalance_chunks is not None else None,
+            "rebalance_chunks": (
+                rebalance_chunks if rebalance_chunks is not None else None
+            ),
             "split_avg": split_avg if split_avg is not None else None,
-            "split_delimiters": split_delimiters if split_delimiters is not None else None,
+            "split_delimiters": (
+                split_delimiters if split_delimiters is not None else None
+            ),
             "tag_set": tag_set if tag_set is not None else None,
-            "target_splits_per_chunk": target_splits_per_chunk if target_splits_per_chunk is not None else None,
+            "target_splits_per_chunk": (
+                target_splits_per_chunk if target_splits_per_chunk is not None else None
+            ),
             "time_stamp": time_stamp if time_stamp is not None else None,
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
@@ -154,15 +163,23 @@ class FileClient (TrieveAPIClient):
         json_data = {
             "description": description if description is not None else None,
             "file_name": file_name if file_name is not None else None,
-            "fulltext_boost_factor": fulltext_boost_factor if fulltext_boost_factor is not None else None,
-            "group_tracking_id": group_tracking_id if group_tracking_id is not None else None,
+            "fulltext_boost_factor": (
+                fulltext_boost_factor if fulltext_boost_factor is not None else None
+            ),
+            "group_tracking_id": (
+                group_tracking_id if group_tracking_id is not None else None
+            ),
             "link": link if link is not None else None,
             "mappings": mappings if mappings is not None else None,
             "metadata": metadata if metadata is not None else None,
-            "semantic_boost_factor": semantic_boost_factor if semantic_boost_factor is not None else None,
+            "semantic_boost_factor": (
+                semantic_boost_factor if semantic_boost_factor is not None else None
+            ),
             "tag_set": tag_set if tag_set is not None else None,
             "time_stamp": time_stamp if time_stamp is not None else None,
-            "upsert_by_tracking_id": upsert_by_tracking_id if upsert_by_tracking_id is not None else None,
+            "upsert_by_tracking_id": (
+                upsert_by_tracking_id if upsert_by_tracking_id is not None else None
+            ),
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
 
