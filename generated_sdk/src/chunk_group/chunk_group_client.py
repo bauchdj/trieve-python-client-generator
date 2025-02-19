@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional, Union
-from src.trieve_api_client import TrieveAPIClient
-from models.models import *
+from ..trieve_api_client import TrieveAPIClient
+from ...models.models import *
 
 class ChunkGroupClient (TrieveAPIClient):
     """Trieve OpenAPI Specification. This document describes all of the operations available through the Trieve API."""
