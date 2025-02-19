@@ -1,8 +1,8 @@
 from typing import Any, Dict, List, Optional, Union
-from ..{{ parent_class_formatted_import_path }}_client import {{ parent_class_formatted_name }}Client
+from ..{{ parent_class_formatted_import_path }} import {{ parent_class_formatted_name }}
 from ...models.models import *
 
-class {{ class_name }} ({{ parent_class_formatted_name }}Client):
+class {{ class_name }} ({{ parent_class_formatted_name }}):
     """{{ description }}"""
 {% for method in methods %}
     {%- set method_name = method.method_name %}

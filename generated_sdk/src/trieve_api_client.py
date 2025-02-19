@@ -2,6 +2,7 @@ from typing import Any, Callable, Dict, Optional
 import httpx
 from models.models import *
 
+
 class TrieveAPIClient:
     def __init__(
         self,

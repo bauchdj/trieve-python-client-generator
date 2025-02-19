@@ -8,6 +8,11 @@ import click
 import black
 from jinja2 import Environment, FileSystemLoader
 
+from src.python_sdk_generator.models.model_base_client import (
+    BaseClientPyJinja,
+    OpenAPITagMetadata,
+)
+
 from .models.model_client import ClientPyJinja, MethodMetadata, MethodParameter
 from ..openapi_parser.openapi_parser import OpenAPIParser
 from ..openapi_parser.models import (
@@ -67,15 +72,35 @@ class SDKGenerator:
         words = name.split()
         return "_".join(word.lower() for word in words)
 
-    def _group_operations_by_tag(self) -> Dict[str, List[Operation]]:
+    def _group_operations_by_tag(
+        self, src_dir: Path
+    ) -> Tuple[Dict[str, List[Operation]], Dict[str, OpenAPITagMetadata]]:
         """Group operations by their tags"""
         operations_by_tag: Dict[str, List[Operation]] = {}
+        tag_metadata_by_tag: Dict[str, OpenAPITagMetadata] = {}
         for op in self.metadata.operations:
             tag = self._clean_tag_name(op.tag)
             if tag not in operations_by_tag:
                 operations_by_tag[tag] = []
             operations_by_tag[tag].append(op)
-        return operations_by_tag
+
+            tag_dir = src_dir / tag
+            tag_dir.mkdir(exist_ok=True)
+            client_path = tag_dir / f"{tag}_client.py"
+            class_name = tag + "Client"
+            tag_metadata_by_tag[tag] = OpenAPITagMetadata(
+                tag=tag,
+                tag_dir=tag_dir.name,
+                tag_filename=client_path.name,
+                tag_class_name=class_name,
+                tag_prop_name=self._clean_name(tag),
+                tag_description="",
+            )
+
+        return operations_by_tag, tag_metadata_by_tag
+
+    def _generate_models(self):
+        """Generate Pydantic models using datamodel-code-generator"""
 
     def _generate_models(self):
         """Generate Pydantic models using datamodel-code-generator"""
@@ -276,12 +301,16 @@ class SDKGenerator:
         return [required_method_params, optional_method_params]
 
     def _generate_client_class(
-        self, tag: str, tag_description: str, operations: List[Operation]
+        self,
+        tag: str,
+        tag_description: str,
+        operations: List[Operation],
+        parent_class_formatted_import_path: str,
+        parent_class_formatted_name: str,
     ) -> str:
         """Generate a client class for a specific tag"""
+        # TODO move to the grouping operations by tag
         class_name = self._clean_name(tag) + "Client"
-        formatted_title = self.metadata.info.title.replace(" ", "").replace("-", "")
-        formatted_import_path = self.metadata.info.title.lower().replace(" ", "_")
         class_description = tag_description or self.metadata.info.description
 
         methods: List[MethodMetadata] = []
@@ -317,42 +346,64 @@ class SDKGenerator:
             )
 
         template_metadata = ClientPyJinja(
-            parent_class_formatted_import_path=formatted_import_path,
-            parent_class_formatted_name=formatted_title,
+            parent_class_formatted_import_path=parent_class_formatted_import_path,
+            parent_class_formatted_name=parent_class_formatted_name,
             class_name=class_name,
             description=class_description,
             methods=methods,
+        ).model_dump()
+
+        return self._render_template_and_format_code(
+            "client.py.jinja", template_metadata=template_metadata
         )
 
-        template = self.env.get_template("client.py.jinja")
-        rendered_code = template.render(template_metadata.model_dump())
+    def _generate_base_client(
+        self, parent_class_formatted_name: str, tags: List[OpenAPITagMetadata]
+    ) -> str:
+        """Generate the base client class"""
+        http_headers = self.metadata.headers
+        print(http_headers)
+        template_metadata = BaseClientPyJinja(
+            class_name=parent_class_formatted_name,
+            class_title=self.metadata.info.title,
+            class_description=self.metadata.info.description,
+            base_url=self.metadata.servers[0].url,
+            http_headers=http_headers,
+            tags=tags,
+        ).model_dump()
 
+        return self._render_template_and_format_code(
+            "base_client.py.jinja", template_metadata=template_metadata
+        )
+
+    def _render_template_and_format_code(
+        self, template_name: str, template_metadata: Any
+    ) -> str:
+        template = self.env.get_template(template_name)
+        rendered_code = template.render(template_metadata)
         formatted_code = black.format_str(rendered_code, mode=black.Mode())
         return formatted_code
-
-    def _generate_base_client(self) -> str:
-        """Generate the base client class"""
-        template = self.env.get_template("base_client.py.jinja")
-        return template.render(metadata=self.metadata)
 
     def _generate_tests(self, tag: str, operations: List[Operation]) -> str:
         """Generate tests for a specific tag"""
         template = self.env.get_template("test_client.py.jinja")
-        return template.render(
+        rendered_code = template.render(
             tag=tag,
             operations=operations,
             class_name=self._clean_name(tag) + "Client",
             metadata=self.metadata,
         )
 
-    def _generate_readme(self) -> str:
+    def _generate_readme(self, operations_by_tag: Dict[str, List[Operation]]) -> str:
         """Generate README.md with SDK documentation"""
         template = self.env.get_template("README.md.jinja")
         return template.render(
-            metadata=self.metadata, operations_by_tag=self._group_operations_by_tag()
+            metadata=self.metadata, operations_by_tag=operations_by_tag
         )
 
     def _get_tag_description(self, tag: str) -> Union[str, None]:
+        # TODO fix this
+        print(tag, self.metadata.tags)
         for t in self.metadata.tags:
             if t == tag:
                 return t.description
@@ -371,25 +422,40 @@ class SDKGenerator:
         # Generate models
         self._generate_models()
 
+        # Parent Class Formatted Path and Name
+        parent_class_formatted_import_path = self.metadata.info.title.lower().replace(
+            " ", "_"
+        )
+        parent_class_formatted_name = self.metadata.info.title.replace(" ", "").replace(
+            "-", ""
+        )
+
+        # Generate tag-specific clients
+        operations_by_tag, tags = self._group_operations_by_tag(src_dir)
+
         # Generate base client
-        base_client_name = self._clean_name(self.metadata.info.title)
         base_client_file = (
             self._clean_file_name(self.metadata.info.title) + "_client.py"
         )
         base_client_path = src_dir / base_client_file
-        base_client_content = self._generate_base_client()
+        base_client_content = self._generate_base_client(
+            parent_class_formatted_name, tags
+        )
         base_client_path.write_text(base_client_content)
 
-        # Generate tag-specific clients
-        operations_by_tag = self._group_operations_by_tag()
         for tag, operations in operations_by_tag.items():
             # Generate client
-            tag_dir = src_dir / tag
-            tag_dir.mkdir(exist_ok=True)
-            client_path = tag_dir / f"{tag}_client.py"
+            tag_metadata = tags[tag]
             tag_description = self._get_tag_description(tag)
             client_content = self._generate_client_class(
-                tag, tag_description, operations
+                tag,
+                tag_description,
+                operations,
+                parent_class_formatted_import_path,
+                parent_class_formatted_name,
+            )
+            client_path = (
+                Path(src_dir) / tag_metadata.tag_dir / tag_metadata.tag_filename
             )
             client_path.write_text(client_content)
 
@@ -403,7 +469,7 @@ class SDKGenerator:
 
         # Generate README
         readme_path = self.output_dir / "README.md"
-        readme_content = self._generate_readme()
+        readme_content = self._generate_readme(operations_by_tag)
         readme_path.write_text(readme_content)
 
 

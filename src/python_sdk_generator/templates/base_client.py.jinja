@@ -1,19 +1,23 @@
 from typing import Any, Callable, Dict, Optional
 import httpx
 from models.models import *
+{% for tag in tags%}
+from {{ tag.tag_dir }}.{{ tag.tag_filename }} import {{ tag.tag_class_name }}
+{% endfor %}
 
-class {{ metadata.info.title.replace(" ", "").replace("-", "") }}Client:
+class {{ class_name }}:
     def __init__(
         self,
-        base_url: str = "{{ metadata.servers[0].url }}",
+        base_url: str = "{{ base_url }}",
         api_key: Optional[str] = None,
         timeout: float = 10.0,
         before_request: Optional[Callable[[httpx.Request], None]] = None,
         after_request: Optional[Callable[[httpx.Response], None]] = None,
     ):
         """
-        {{ metadata.info.title }}
-        {{ metadata.info.description }}
+        {{ class_title }}
+
+        {{ class_description }}
 
         Args:
             base_url: The base URL for API requests
@@ -31,9 +35,13 @@ class {{ metadata.info.title.replace(" ", "").replace("-", "") }}Client:
 
         if api_key:
             self.client.headers.update({"Authorization": f"Bearer {api_key}"})
-        {%- for header in metadata.headers %}
+        {%- for header in http_headers %}
         self.client.headers.update({"{{ header.name }}": "{{ header.default if header.default else '' }}"})
         {%- endfor %}
+
+        {% for tag in tags%}
+        self.{{ tag.tag_prop_name }} = {{ tag.tag_class_name }}()
+        {% endfor %}
 
     def _make_request(
         self,
