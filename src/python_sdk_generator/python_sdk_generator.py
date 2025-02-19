@@ -150,12 +150,13 @@ class SDKGenerator:
         # print("END", resolved_type)
         return resolved_type
 
-    def _get_single_nested_schema(self, schema: Union[SchemaMetadata, None]) -> SchemaMetadata:
+    def _get_single_nested_schema(self, schema: Union[SchemaMetadata, None]) -> Union[Dict[str, Any], None]:
         if schema is None:
             return None
         if schema.length_nested_json_schemas != 1:
-            return schema
-        nested_schema = schema.nested_json_schemas[0]
+            return schema.model_dump()
+        schema = schema.model_dump()
+        nested_schema = schema.get("nested_json_schemas", [None])[0]
         if nested_schema:
             return nested_schema
         return schema
@@ -166,32 +167,36 @@ class SDKGenerator:
         """
         return [
             MethodParameter(
+                required=http_param.required,
                 name=http_param.name, 
                 original_name=http_param.original_name, 
                 type=self.format_type(http_param.type),
-                docstring=http_param.description,
+                description=http_param.description,
             )
             for http_param in http_params if cond(http_param) 
         ]
 
-    def _method_params_from_schema_props(self, schema: SchemaMetadata, props: List[Dict[str, Any]], cond: Callable[[str, Dict[str, Any]], bool]) -> List[MethodParameter]:
+    def _method_params_from_schema_props(self, schema: Dict[str, Any], props: List[Dict[str, Any]], cond: Callable[[str, bool], bool]) -> List[MethodParameter]:
         default_description = "No description provided"
-        # schema_type = self.format_type(schema)
+        schema_required = schema.get("required", [])
+        is_required = lambda prop_name, prop: prop_name in schema_required or prop.get("required", False)
         return [
             MethodParameter(
+                required=is_required(prop_name, prop),
                 name=prop_name,
                 type=self.format_type(prop),
-                docstring=schema.get("description", default_description) or prop.get("description", default_description),
+                description=prop.get("description", None) or prop.get('nested_json_schemas', [schema])[0].get("description", None) or default_description,
             )
-            for prop_name, prop in props.items() if cond(prop_name, prop) 
+            for prop_name, prop in props.items() if cond(prop_name, is_required(prop_name, prop)) 
         ]
 
-    def _method_param_from_request_body(self, request_body: SchemaMetadata) -> List[MethodParameter]:
+    def _method_param_from_request_body(self, request_body: Dict[str, Any]) -> List[MethodParameter]:
         return [
             MethodParameter(
+                required=request_body.get("required", False),
                 name="request_body",
                 type=self.format_type(request_body.get("type", None)),
-                docstring=request_body.get("description", "Request body")
+                description=request_body.get("description", "Request body"),
             )
         ]
     
@@ -204,10 +209,9 @@ class SDKGenerator:
         optional_schema_props: List[MethodParameter] = []
         if schema is not None:
             schema_props = schema.get("properties", None)
-            # if not isinstance(schema, SchemaMetadata):
             if schema_props:
-                required_schema_props += self._method_params_from_schema_props(schema, schema_props, lambda prop_name, prop: prop.get("required", False) == True and prop_name not in http_param_names)
-                optional_schema_props += self._method_params_from_schema_props(schema, schema_props, lambda prop_name, prop: prop.get("required", False) != True and prop_name not in http_param_names)
+                required_schema_props += self._method_params_from_schema_props(schema, schema_props, lambda prop_name,  is_required: is_required and prop_name not in http_param_names)
+                optional_schema_props += self._method_params_from_schema_props(schema, schema_props, lambda prop_name, is_required: not is_required and prop_name not in http_param_names)
             elif schema.get("required", False):
                 required_schema_props += self._method_param_from_request_body(schema)
             else:
@@ -231,52 +235,40 @@ class SDKGenerator:
             if op.request_body and isinstance(op.request_body, SchemaMetadata):
                 op.request_body.type = self._clean_type_name(op.request_body.type)
 
-        # removes nested models for jinja templating. SchemaMetadata model is causing 'is mapping' to be False when it should be True in jinja
-        # operations = [op.model_dump() for op in operations]
-        # metadata = self.metadata.model_dump()
-
         class_name = self._clean_name(tag) + "Client"
         formatted_title = self.metadata.info.title.replace(" ", "").replace("-", "")
         formatted_import_path = self.metadata.info.title.lower().replace(" ", "_")
-        class_docstring = tag_description or self.metadata.info.description
+        class_description = tag_description or self.metadata.info.description
 
         methods: List[MethodMetadata] = []
         for op in operations:
-            schema: Union[SchemaMetadata, None] = self._get_single_nested_schema(op.request_body)
-            if isinstance(schema, SchemaMetadata):
-                schema = schema.model_dump()
-            required_method_params, optional_method_params = self._resolve_method_params(op, schema)
-            # http_params = op.parameters
+            http_params = op.parameters
             request_body = op.request_body
+            schema: Union[Dict[str, Any], None] = self._get_single_nested_schema(op.request_body)
+            required_method_params, optional_method_params = self._resolve_method_params(op, schema)
             methods.append(
                 MethodMetadata(
                     method_name=op.operationId,
+                    description=op.description,
                     required_method_params=required_method_params,
                     optional_method_params=optional_method_params,
+                    http_method=op.method.upper(),
                     path=op.path,
+                    http_params=http_params,
                     request_body=request_body,
+                    nested_schema=schema,
                 )
             )
-        # methods = [m.model_dump() for m in methods]
 
         template_metadata = ClientPyJinja(
             parent_class_formatted_import_path=formatted_import_path,
             parent_class_formatted_name=formatted_title,
             class_name=class_name,
-            class_docstring=class_docstring,
-            methods=methods
+            description=class_description,
+            methods=methods,
         )
 
         return template.render(template_metadata.model_dump())
-
-        # return template.render(
-        #     tag=tag,
-        #     operations=operations,
-        #     metadata=metadata,
-        #     class_name=class_name,
-        #     formatted_title=formatted_title,
-        #     formatted_import_path=formatted_import_path,
-        # )
 
     def _generate_base_client(self) -> str:
         """Generate the base client class"""

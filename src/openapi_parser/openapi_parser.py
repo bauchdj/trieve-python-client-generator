@@ -184,7 +184,7 @@ class OpenAPIParser:
         for k, value in d.items():
             if k in ["$ref", "allOf", "oneOf", "anyOf", "not"]:
                 schema_metadata = self._schema_metadata(d)
-                parent[key] = schema_metadata.model_dump()
+                parent[key] = schema_metadata
             elif isinstance(value, dict):
                 self._traverse_dict(d=value, key=k, parent=d)
             elif isinstance(value, list):
