@@ -224,8 +224,12 @@ class SDKGenerator:
 
     def _generate_client_class(self, tag: str, tag_description: str, operations: List[Operation]) -> str:
         """Generate a client class for a specific tag"""
-        template = self.env.get_template("client.py.jinja")
+        class_name = self._clean_name(tag) + "Client"
+        formatted_title = self.metadata.info.title.replace(" ", "").replace("-", "")
+        formatted_import_path = self.metadata.info.title.lower().replace(" ", "_")
+        class_description = tag_description or self.metadata.info.description
 
+        methods: List[MethodMetadata] = []
         for op in operations:
             for param in op.parameters:
                 # Add original name for query parameters
@@ -235,13 +239,6 @@ class SDKGenerator:
             if op.request_body and isinstance(op.request_body, SchemaMetadata):
                 op.request_body.type = self._clean_type_name(op.request_body.type)
 
-        class_name = self._clean_name(tag) + "Client"
-        formatted_title = self.metadata.info.title.replace(" ", "").replace("-", "")
-        formatted_import_path = self.metadata.info.title.lower().replace(" ", "_")
-        class_description = tag_description or self.metadata.info.description
-
-        methods: List[MethodMetadata] = []
-        for op in operations:
             http_params = op.parameters
             request_body = op.request_body
             schema: Union[Dict[str, Any], None] = self._get_single_nested_schema(op.request_body)
@@ -268,6 +265,7 @@ class SDKGenerator:
             methods=methods,
         )
 
+        template = self.env.get_template("client.py.jinja")
         return template.render(template_metadata.model_dump())
 
     def _generate_base_client(self) -> str:
