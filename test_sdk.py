@@ -1,15 +1,12 @@
 import os
 from dotenv import load_dotenv
 
-from generated_sdk.src.trieve_api_client import TrieveAPIClient
+from generated_sdk.src.trieve_api import TrieveApi
 from generated_sdk.models.models import (
     CreateChunkReqPayloadEnum,
     CreateSingleChunkReqPayload,
     CreateBatchChunkReqPayload,
 )
-from generated_sdk.src.chunk.chunk_client import ChunkClient
-
-# from generated_sdk.models import *
 
 # Load environment variables from .env file
 load_dotenv()
@@ -19,14 +16,13 @@ tr_dataset_id = os.getenv("TRIEVE_DATASET_ID")
 api_key = os.getenv("TRIEVE_API_KEY")
 
 # Create SDK instance
-# sdk = TrieveAPIClient(api_key=api_key)
-sdk = ChunkClient(api_key=api_key)
+sdk = TrieveApi(api_key=api_key)
 
 
 def test_create_chunk(request_body: CreateChunkReqPayloadEnum):
     """Test creating a new chunk"""
     try:
-        result = sdk.create_chunk(
+        result = sdk.chunk.create_chunk(
             tr_dataset=tr_dataset_id,
             request_body=request_body,
         )
@@ -39,7 +35,7 @@ def test_search_chunks(query: str):
     """Test searching chunks functionality"""
     try:
         # result = sdk.chunk.search_chunks(
-        result = sdk.search_chunks(
+        result = sdk.chunk.search_chunks(
             tr_dataset=tr_dataset_id, query=query, search_type="semantic", page=5
         )
         print("Search results:", result)
@@ -50,7 +46,7 @@ def test_search_chunks(query: str):
 def test_delete_chuck(chunk_id: str):
     """Test deleting the new chunk"""
     try:
-        result = sdk.delete_chunk(tr_dataset=tr_dataset_id, chunk_id=chunk_id)
+        result = sdk.chunk.delete_chunk(tr_dataset=tr_dataset_id, chunk_id=chunk_id)
         print("Created chunk:", result)
     except Exception as e:
         print(f"Error creating chunk: {e}")

@@ -1,10 +1,19 @@
-from typing import Any, Dict, List, Optional, Union
-from ..trieve_api_client import TrieveAPIClient
+from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
 from ...models.models import *
 
+if TYPE_CHECKING:
+    from ..trieve_api import TrieveApi
 
-class CrawlClient(TrieveAPIClient):
-    """Trieve OpenAPI Specification. This document describes all of the operations available through the Trieve API."""
+
+class Crawl:
+    def __init__(self, parent: "TrieveApi"):
+        """
+        Trieve OpenAPI Specification. This document describes all of the operations available through the Trieve API.
+
+        Args:
+            parent: The parent client to use for the requests
+        """
+        self.parent = parent
 
     def get_crawl_requests_for_dataset(
         self,
@@ -34,7 +43,7 @@ class CrawlClient(TrieveAPIClient):
             params["limit"] = limit
         json_data = None
 
-        response = self._make_request(
+        response = self.parent._make_request(
             method="GET",
             path=path,
             params=params,
@@ -68,7 +77,7 @@ class CrawlClient(TrieveAPIClient):
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
 
-        response = self._make_request(
+        response = self.parent._make_request(
             method="POST",
             path=path,
             params=params,
@@ -105,7 +114,7 @@ class CrawlClient(TrieveAPIClient):
         }
         json_data = {k: v for k, v in json_data.items() if v is not None}
 
-        response = self._make_request(
+        response = self.parent._make_request(
             method="PUT",
             path=path,
             params=params,
@@ -136,7 +145,7 @@ class CrawlClient(TrieveAPIClient):
             headers["TR-Dataset"] = tr_dataset
         json_data = None
 
-        response = self._make_request(
+        response = self.parent._make_request(
             method="DELETE",
             path=path,
             params=params,
