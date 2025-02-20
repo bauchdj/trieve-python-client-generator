@@ -51,6 +51,35 @@ class ConfigurableFileWriter:
         path = str(Path(path))  # Normalize path separators
         return any(pattern.search(path) for pattern in self.compiled_patterns)
 
+    def create_directory(self, path: str) -> bool:
+        """
+        Create a directory if it's not in the ignore list.
+
+        Args:
+            path: The directory path to create
+
+        Returns:
+            bool: True if directory was created or exists, False if ignored
+        """
+        if self.should_ignore(path):
+            click.echo(f"Skipping ignored directory: {path}")
+            return False
+
+        # Check each parent directory against ignore patterns
+        parents_to_create: List[Path] = []
+        current = Path(path)
+        while not current.exists():
+            if self.should_ignore(str(current)):
+                click.echo(f"Cannot create directory: {current} is ignored")
+                return False
+            parents_to_create.append(current)
+            current = current.parent
+
+        # Create directories
+        for dir_path in reversed(parents_to_create):
+            dir_path.mkdir(exist_ok=True)
+        return True
+
     def write(self, path: str, content: str, mode: str = "w") -> bool:
         """
         Write content to a file if it's not in the ignore list.
@@ -67,29 +96,69 @@ class ConfigurableFileWriter:
             click.echo(f"Skipping ignored path: {path}")
             return False
 
-        # Create parent directories if they don't exist and aren't ignored
+        # Create parent directories if they don't exist
         parent = Path(path).parent
-        if not parent.exists():
-            # Check each parent directory against ignore patterns
-            parents_to_create = []
-            current = parent
-            while not current.exists():
-                if self.should_ignore(str(current)):
-                    click.echo(
-                        f"Cannot create file: parent directory {current} is ignored"
-                    )
-                    return False
-                parents_to_create.append(current)
-                current = current.parent
-
-            # Create parent directories
-            for dir_path in reversed(parents_to_create):
-                dir_path.mkdir(exist_ok=True)
+        if not self.create_directory(str(parent)):
+            return False
 
         # Write the file
         with open(path, mode) as f:
             f.write(content)
         return True
+
+    def generate_python_models(self, models_dir: str, openapi_path: str) -> bool:
+        """
+        Generate Python models using datamodel-codegen.
+
+        Args:
+            models_dir: Directory where models should be generated
+            openapi_path: Path to the OpenAPI spec file
+
+        Returns:
+            bool: True if models were generated, False if ignored
+        """
+        if self.should_ignore(models_dir):
+            click.echo(f"Skipping model generation: {models_dir} is ignored")
+            return False
+
+        if not self.create_directory(models_dir):
+            return False
+
+        models_path = Path(models_dir) / "models.py"
+        if self.should_ignore(str(models_path)):
+            click.echo(f"Skipping model generation: {models_path} is ignored")
+            return False
+
+        import subprocess
+
+        cmd = [
+            "datamodel-codegen",
+            "--input-file-type",
+            "openapi",
+            "--input",
+            str(openapi_path),
+            "--output",
+            str(models_path),
+            "--use-standard-collections",
+            "--use-schema-description",
+            "--field-constraints",
+            "--strict-nullable",
+            "--wrap-string-literal",
+            "--enum-field-as-literal",
+            "one",
+            "--use-double-quotes",
+            "--use-default-kwarg",
+            "--use-annotated",
+            "--use-field-description",
+            "--output-model-type",
+            "pydantic_v2.BaseModel",
+        ]
+        try:
+            subprocess.run(cmd, check=True)
+            return True
+        except subprocess.CalledProcessError as e:
+            click.echo(f"Error generating models: {e}")
+            return False
 
     @classmethod
     def from_click_context(

@@ -13,6 +13,6 @@
 		"^.*/\\.vscode/.*",
 		"^.*/node_modules/.*",
 		"openapi.json",
-		"generated_sdk"
+		"models.py"
 	]
 }

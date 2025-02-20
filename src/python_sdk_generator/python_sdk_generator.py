@@ -90,7 +90,6 @@ class SDKGenerator:
 
             tag_capitalized = self._clean_capitalize(tag)
             tag_dir = src_dir / tag_lowered
-            tag_dir.mkdir(exist_ok=True)
             tag_filename = tag_lowered + "_handler"
 
             tag_metadata_by_tag[tag_lowered] = OpenAPITagMetadata(
@@ -106,53 +105,6 @@ class SDKGenerator:
 
     def _generate_models(self):
         """Generate Pydantic models using datamodel-code-generator"""
-
-    def _generate_models(self):
-        """Generate Pydantic models using datamodel-code-generator"""
-        # Create a copy of the original OpenAPI spec with our metadata
-        openapi_spec = {
-            "openapi": self.metadata.openapi,
-            "info": self.metadata.info.model_dump(),
-            "servers": [s.model_dump() for s in self.metadata.servers],
-            "paths": {},  # We'll get this from the original spec
-            "components": {},  # We'll get this from the original spec
-        }
-
-        # Get the original spec from the parser
-        with open(str(Path(self.metadata.source_file).resolve())) as f:
-            original_spec = json.load(f)
-            openapi_spec["paths"] = original_spec.get("paths", {})
-            openapi_spec["components"] = original_spec.get("components", {})
-
-        # Write the complete spec
-        openapi_file = self.output_dir / "openapi.json"
-        self.file_writer.write(openapi_file, json.dumps(openapi_spec, indent=2))
-
-        # Generate models
-        self.models_dir.mkdir(parents=True, exist_ok=True)
-        cmd = [
-            "datamodel-codegen",
-            "--input-file-type",
-            "openapi",
-            "--input",
-            str(openapi_file),
-            "--output",
-            str(self.models_dir / "models.py"),
-            "--use-standard-collections",
-            "--use-schema-description",
-            "--field-constraints",
-            "--strict-nullable",
-            "--wrap-string-literal",
-            "--enum-field-as-literal",
-            "one",
-            "--use-double-quotes",
-            "--use-default-kwarg",
-            "--use-annotated",
-            "--use-field-description",
-            "--output-model-type",
-            "pydantic_v2.BaseModel",
-        ]
-        subprocess.run(cmd, check=True)
 
     def format_type(self, type_info: Union[Dict, str, None]) -> str:
         resolved_type: str = "Any"
@@ -411,37 +363,49 @@ class SDKGenerator:
                 return t.description
         return None
 
-    def generate(self):
-        """Generate the complete SDK"""
-        # Create directory structure
-        self.output_dir.mkdir(parents=True, exist_ok=True)
-        self.models_dir.mkdir(parents=True, exist_ok=True)
-        src_dir = self.output_dir / "src"
-        src_dir.mkdir(exist_ok=True)
-        tests_dir = self.output_dir / "tests"
-        tests_dir.mkdir(exist_ok=True)
+    def generate(self) -> None:
+        """Generate the SDK."""
+        # Create output directories
+        self.file_writer.create_directory(str(self.output_dir))
+
+        # Write the complete spec
+        openapi_file = self.output_dir / "openapi.json"
+        self.file_writer.write(
+            str(openapi_file), json.dumps(self.metadata.openapi, indent=2)
+        )
 
         # Generate models
-        self._generate_models()
+        openapi_path = str(Path(self.metadata.source_file))
+        self.file_writer.generate_python_models(str(self.models_dir), openapi_path)
+
+        # Generate base client
+        src_dir = self.output_dir / "src"
+        self.file_writer.create_directory(str(src_dir))
+
+        # Generate test directory if needed
+        test_dir = self.output_dir / "tests"
+        if self.generate_tests:
+            self.file_writer.create_directory(str(test_dir))
 
         # Parent Class Formatted Path and Name
         parent_class_name = self._clean_capitalize(self.metadata.info.title)
 
-        # Generate tag-specific clients
-        operations_by_tag, map_tag_to_metadata = self._group_operations_by_tag(src_dir)
-        tags = map_tag_to_metadata.values()
+        # Group operations by tag
+        operations_by_tag, tag_metadata_by_tag = self._group_operations_by_tag(src_dir)
 
         # Generate base client
         file_ext = ".py"
         base_client_filename = self._clean_file_name(self.metadata.info.title)
         base_client_file = base_client_filename + file_ext
         base_client_path = src_dir / base_client_file
-        base_client_content = self._generate_base_client(parent_class_name, tags)
-        self.file_writer.write(base_client_path, base_client_content)
+        base_client_content = self._generate_base_client(
+            parent_class_name, tag_metadata_by_tag.values()
+        )
+        self.file_writer.write(str(base_client_path), base_client_content)
 
         for tag, operations in operations_by_tag.items():
             # Generate client
-            tag_metadata = map_tag_to_metadata[tag]
+            tag_metadata = tag_metadata_by_tag[tag]
             tag_class_name = tag_metadata.tag_class_name
             tag_description = self._get_tag_description(tag)
 
@@ -454,23 +418,22 @@ class SDKGenerator:
             )
 
             tag_dir = tag_metadata.tag_dir
+            self.file_writer.create_directory(str(tag_dir))
             tag_file = tag_metadata.tag_filename + file_ext
             client_path = src_dir / tag_dir / tag_file
-            self.file_writer.write(client_path, client_content)
+            self.file_writer.write(str(client_path), client_content)
 
             if self.generate_tests:
                 # Generate tests
-                test_dir = tests_dir / tag_metadata.tag_dir
-                test_dir.mkdir(exist_ok=True)
                 tag_test_file = tag_metadata.tag_filename + "_test" + file_ext
                 test_path = test_dir / tag_test_file
                 test_content = self._generate_tests(tag, operations)
-                self.file_writer.write(test_path, test_content)
+                self.file_writer.write(str(test_path), test_content)
 
         # Generate README
         readme_path = self.output_dir / "README.md"
         readme_content = self._generate_readme(operations_by_tag)
-        self.file_writer.write(readme_path, readme_content)
+        self.file_writer.write(str(readme_path), readme_content)
 
 
 @click.command()
