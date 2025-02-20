@@ -11,8 +11,6 @@
 		"^.*/\\.venv/.*",
 		"^.*/\\.idea/.*",
 		"^.*/\\.vscode/.*",
-		"^.*/node_modules/.*",
-		"openapi.json",
-		"models.py"
+		"^.*/node_modules/.*"
 	]
 }

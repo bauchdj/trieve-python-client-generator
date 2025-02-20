@@ -61,23 +61,24 @@ class ConfigurableFileWriter:
         Returns:
             bool: True if directory was created or exists, False if ignored
         """
-        if self.should_ignore(path):
+        path: Path = Path(path)
+        should_ignore = self.should_ignore(str(path))
+        if should_ignore:
             click.echo(f"Skipping ignored directory: {path}")
             return False
 
-        # Check each parent directory against ignore patterns
-        parents_to_create: List[Path] = []
-        current = Path(path)
-        while not current.exists():
-            if self.should_ignore(str(current)):
-                click.echo(f"Cannot create directory: {current} is ignored")
-                return False
-            parents_to_create.append(current)
-            current = current.parent
+        # If directory already exists, just check if it's ignored
+        if path.exists():
+            return not should_ignore
 
-        # Create directories
-        for dir_path in reversed(parents_to_create):
-            dir_path.mkdir(exist_ok=True)
+        # Check if parent directory exists and can be created if needed
+        parent = path.parent
+        if not parent.exists() and not self.create_directory(str(parent)):
+            return False
+
+        # Create the directory since parent exists and is not ignored
+        print("Creating directory:", path)
+        path.mkdir(exist_ok=True)
         return True
 
     def write(self, path: str, content: str, mode: str = "w") -> bool:
@@ -152,6 +153,7 @@ class ConfigurableFileWriter:
             "--use-field-description",
             "--output-model-type",
             "pydantic_v2.BaseModel",
+            "--disable-timestamp",
         ]
         try:
             subprocess.run(cmd, check=True)

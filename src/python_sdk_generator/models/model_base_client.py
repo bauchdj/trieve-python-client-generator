@@ -8,6 +8,7 @@ class OpenAPITagMetadata(BaseModel):
 
     tag: str
     tag_dir: str
+    tag_dir_path: str
     tag_filename: str
     tag_class_name: str
     tag_prop_name: str

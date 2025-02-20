@@ -95,6 +95,7 @@ class SDKGenerator:
             tag_metadata_by_tag[tag_lowered] = OpenAPITagMetadata(
                 tag=tag,
                 tag_dir=tag_dir.name,
+                tag_dir_path=str(tag_dir),
                 tag_filename=tag_filename,
                 tag_class_name=tag_capitalized,
                 tag_prop_name=tag_lowered,
@@ -417,10 +418,10 @@ class SDKGenerator:
                 base_client_filename,
             )
 
-            tag_dir = tag_metadata.tag_dir
-            self.file_writer.create_directory(str(tag_dir))
+            tag_dir_path = Path(tag_metadata.tag_dir_path)
+            self.file_writer.create_directory(str(tag_dir_path))
             tag_file = tag_metadata.tag_filename + file_ext
-            client_path = src_dir / tag_dir / tag_file
+            client_path = tag_dir_path / tag_file
             self.file_writer.write(str(client_path), client_content)
 
             if self.generate_tests:
