@@ -44,14 +44,14 @@ class OpenAPIParser:
                     )
                 operations.append(operation)
         headers = [
-            HttpParameter(**http_param)
+            HttpHeader(**http_param)
             for http_param in http_params
             if "header" in http_param["in"]
         ]
         openapi = self.openapi_spec.get("openapi", "")
         info = self.openapi_spec.get("info", {})
         servers = self.openapi_spec.get("servers", [])
-        tags = self.components.get("tags", [])
+        tags = self.openapi_spec.get("tags", [])
         return OpenAPIMetadata(
             openapi=openapi,
             info=info,

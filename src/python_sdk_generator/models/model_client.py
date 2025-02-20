@@ -30,8 +30,8 @@ class MethodMetadata(BaseModel):
 class ClientPyJinja(BaseModel):
     """Represents the data the client.py.jinja template needs"""
 
-    parent_class_formatted_import_path: str
-    parent_class_formatted_name: str
+    parent_class_name: str
+    parent_filename: str
     class_name: str
     description: str
     methods: List[MethodMetadata] = Field(default_factory=[])

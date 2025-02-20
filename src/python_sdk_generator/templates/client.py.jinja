@@ -1,9 +1,22 @@
-from typing import Any, Dict, List, Optional, Union
-from ..{{ parent_class_formatted_import_path }} import {{ parent_class_formatted_name }}
+from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
 from ...models.models import *
 
-class {{ class_name }} ({{ parent_class_formatted_name }}):
-    """{{ description }}"""
+if TYPE_CHECKING:
+    from ..{{ parent_filename }} import {{ parent_class_name }}
+
+class {{ class_name }}:
+    def __init__(
+        self,
+        parent: "{{ parent_class_name }}"
+    ):
+        """
+        {{ description }}
+
+        Args:
+            parent: The parent client to use for the requests
+        """
+        self.parent = parent
+
 {% for method in methods %}
     {%- set method_name = method.method_name %}
     {%- set required_params = method.required_method_params %}
@@ -67,7 +80,7 @@ class {{ class_name }} ({{ parent_class_formatted_name }}):
         json_data = None
         {%- endif %}
 
-        response = self._make_request(
+        response = self.parent._make_request(
             method="{{ method.http_method }}",
             path=path,
             params=params,

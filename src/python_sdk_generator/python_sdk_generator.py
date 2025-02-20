@@ -38,11 +38,11 @@ class SDKGenerator:
         self.template_dir = Path(__file__).parent / "templates"
         self.env = Environment(loader=FileSystemLoader(str(self.template_dir)))
 
-    def _clean_tag_name(self, tag: str) -> str:
+    def _clean_lower(self, tag: str) -> str:
         """Clean tag name to be a valid Python identifier"""
         return tag.lower().replace(" ", "_").replace("-", "_")
 
-    def _clean_name(self, name: str) -> str:
+    def _clean_capitalize(self, name: str) -> str:
         """Clean name to be a valid Python identifier"""
         # Remove spaces and dashes, convert to camel case
         words = name.replace("-", " ").replace("_", " ").split()
@@ -79,21 +79,23 @@ class SDKGenerator:
         operations_by_tag: Dict[str, List[Operation]] = {}
         tag_metadata_by_tag: Dict[str, OpenAPITagMetadata] = {}
         for op in self.metadata.operations:
-            tag = self._clean_tag_name(op.tag)
-            if tag not in operations_by_tag:
-                operations_by_tag[tag] = []
-            operations_by_tag[tag].append(op)
+            tag = op.tag
+            tag_lowered = self._clean_lower(tag)
+            if tag_lowered not in operations_by_tag:
+                operations_by_tag[tag_lowered] = []
+            operations_by_tag[tag_lowered].append(op)
 
-            tag_dir = src_dir / tag
+            tag_capitalized = self._clean_capitalize(tag)
+            tag_dir = src_dir / tag_lowered
             tag_dir.mkdir(exist_ok=True)
-            client_path = tag_dir / f"{tag}_client.py"
-            class_name = tag + "Client"
-            tag_metadata_by_tag[tag] = OpenAPITagMetadata(
+            tag_filename = tag_lowered + "_handler"
+
+            tag_metadata_by_tag[tag_lowered] = OpenAPITagMetadata(
                 tag=tag,
                 tag_dir=tag_dir.name,
-                tag_filename=client_path.name,
-                tag_class_name=class_name,
-                tag_prop_name=self._clean_name(tag),
+                tag_filename=tag_filename,
+                tag_class_name=tag_capitalized,
+                tag_prop_name=tag_lowered,
                 tag_description="",
             )
 
@@ -302,15 +304,13 @@ class SDKGenerator:
 
     def _generate_client_class(
         self,
-        tag: str,
+        class_name: str,
         tag_description: str,
         operations: List[Operation],
-        parent_class_formatted_import_path: str,
-        parent_class_formatted_name: str,
+        parent_class_name: str,
+        base_client_filename: str,
     ) -> str:
         """Generate a client class for a specific tag"""
-        # TODO move to the grouping operations by tag
-        class_name = self._clean_name(tag) + "Client"
         class_description = tag_description or self.metadata.info.description
 
         methods: List[MethodMetadata] = []
@@ -346,8 +346,8 @@ class SDKGenerator:
             )
 
         template_metadata = ClientPyJinja(
-            parent_class_formatted_import_path=parent_class_formatted_import_path,
-            parent_class_formatted_name=parent_class_formatted_name,
+            parent_class_name=parent_class_name,
+            parent_filename=base_client_filename,
             class_name=class_name,
             description=class_description,
             methods=methods,
@@ -358,13 +358,12 @@ class SDKGenerator:
         )
 
     def _generate_base_client(
-        self, parent_class_formatted_name: str, tags: List[OpenAPITagMetadata]
+        self, parent_class_name: str, tags: List[OpenAPITagMetadata]
     ) -> str:
         """Generate the base client class"""
         http_headers = self.metadata.headers
-        print(http_headers)
         template_metadata = BaseClientPyJinja(
-            class_name=parent_class_formatted_name,
+            class_name=parent_class_name,
             class_title=self.metadata.info.title,
             class_description=self.metadata.info.description,
             base_url=self.metadata.servers[0].url,
@@ -390,20 +389,21 @@ class SDKGenerator:
         rendered_code = template.render(
             tag=tag,
             operations=operations,
-            class_name=self._clean_name(tag) + "Client",
+            class_name=self._clean_capitalize(tag),
             metadata=self.metadata,
         )
+        formatted_code = black.format_str(rendered_code, mode=black.Mode())
+        return formatted_code
 
     def _generate_readme(self, operations_by_tag: Dict[str, List[Operation]]) -> str:
         """Generate README.md with SDK documentation"""
         template = self.env.get_template("README.md.jinja")
-        return template.render(
+        rendered_code = template.render(
             metadata=self.metadata, operations_by_tag=operations_by_tag
         )
+        return rendered_code
 
     def _get_tag_description(self, tag: str) -> Union[str, None]:
-        # TODO fix this
-        print(tag, self.metadata.tags)
         for t in self.metadata.tags:
             if t == tag:
                 return t.description
@@ -423,47 +423,45 @@ class SDKGenerator:
         self._generate_models()
 
         # Parent Class Formatted Path and Name
-        parent_class_formatted_import_path = self.metadata.info.title.lower().replace(
-            " ", "_"
-        )
-        parent_class_formatted_name = self.metadata.info.title.replace(" ", "").replace(
-            "-", ""
-        )
+        parent_class_name = self._clean_capitalize(self.metadata.info.title)
 
         # Generate tag-specific clients
-        operations_by_tag, tags = self._group_operations_by_tag(src_dir)
+        operations_by_tag, map_tag_to_metadata = self._group_operations_by_tag(src_dir)
+        tags = map_tag_to_metadata.values()
 
         # Generate base client
-        base_client_file = (
-            self._clean_file_name(self.metadata.info.title) + "_client.py"
-        )
+        file_ext = ".py"
+        base_client_filename = self._clean_file_name(self.metadata.info.title)
+        base_client_file = base_client_filename + file_ext
         base_client_path = src_dir / base_client_file
-        base_client_content = self._generate_base_client(
-            parent_class_formatted_name, tags
-        )
+        base_client_content = self._generate_base_client(parent_class_name, tags)
         base_client_path.write_text(base_client_content)
 
         for tag, operations in operations_by_tag.items():
             # Generate client
-            tag_metadata = tags[tag]
+            tag_metadata = map_tag_to_metadata[tag]
+            tag_class_name = tag_metadata.tag_class_name
             tag_description = self._get_tag_description(tag)
+
             client_content = self._generate_client_class(
-                tag,
+                tag_class_name,
                 tag_description,
                 operations,
-                parent_class_formatted_import_path,
-                parent_class_formatted_name,
+                parent_class_name,
+                base_client_filename,
             )
-            client_path = (
-                Path(src_dir) / tag_metadata.tag_dir / tag_metadata.tag_filename
-            )
+
+            tag_dir = tag_metadata.tag_dir
+            tag_file = tag_metadata.tag_filename + file_ext
+            client_path = src_dir / tag_dir / tag_file
             client_path.write_text(client_content)
 
             if self.generate_tests:
                 # Generate tests
-                test_dir = tests_dir / tag
+                test_dir = tests_dir / tag_metadata.tag_dir
                 test_dir.mkdir(exist_ok=True)
-                test_path = test_dir / f"{tag}_test.py"
+                tag_test_file = tag_metadata.tag_filename + "_test" + file_ext
+                test_path = test_dir / tag_test_file
                 test_content = self._generate_tests(tag, operations)
                 test_path.write_text(test_content)
 
@@ -506,6 +504,7 @@ def main(input_file: str, sdk_output: str, models_output: Optional[str], tests: 
 
     # Set up paths
     sdk_dir = Path(sdk_output)
+    # TODO default models dir
     models_dir = Path(models_output) if models_output else sdk_dir / "models"
 
     # Generate SDK

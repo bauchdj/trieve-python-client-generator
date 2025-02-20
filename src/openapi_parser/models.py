@@ -67,7 +67,7 @@ class Server(BaseModel):
 
 
 class OpenAPITag(BaseModel):
-    tag: str
+    name: str
     description: str
 
 
@@ -79,5 +79,5 @@ class OpenAPIMetadata(BaseModel):
     servers: List[Server]
     tags: List[OpenAPITag]
     operations: List[Operation]
-    headers: List[HttpParameter]
+    headers: List[HttpHeader]
     source_file: str = ""  # Path to the source OpenAPI file

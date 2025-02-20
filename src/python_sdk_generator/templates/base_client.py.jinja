@@ -1,9 +1,9 @@
 from typing import Any, Callable, Dict, Optional
 import httpx
-from models.models import *
-{% for tag in tags%}
-from {{ tag.tag_dir }}.{{ tag.tag_filename }} import {{ tag.tag_class_name }}
-{% endfor %}
+from ..models.models import *
+{% for tag in tags  %}
+from .{{ tag.tag_dir }}.{{ tag.tag_filename }} import {{ tag.tag_class_name }}
+{%- endfor %}
 
 class {{ class_name }}:
     def __init__(
@@ -38,10 +38,9 @@ class {{ class_name }}:
         {%- for header in http_headers %}
         self.client.headers.update({"{{ header.name }}": "{{ header.default if header.default else '' }}"})
         {%- endfor %}
-
         {% for tag in tags%}
-        self.{{ tag.tag_prop_name }} = {{ tag.tag_class_name }}()
-        {% endfor %}
+        self.{{ tag.tag_prop_name }} = {{ tag.tag_class_name }}(self)
+        {%- endfor %}
 
     def _make_request(
         self,

@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional, Union, Literal
 from pydantic import BaseModel, Field
-from ...openapi_parser.models import HttpParameter
+from ...openapi_parser.models import HttpHeader
 
 
 class OpenAPITagMetadata(BaseModel):
@@ -21,5 +21,5 @@ class BaseClientPyJinja(BaseModel):
     class_title: str
     class_description: str
     base_url: str
-    http_headers: List[HttpParameter]
+    http_headers: List[HttpHeader]
     tags: List[OpenAPITagMetadata]
