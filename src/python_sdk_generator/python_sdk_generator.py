@@ -14,6 +14,7 @@ from src.python_sdk_generator.models.model_base_client import (
 )
 
 from .models.model_client import ClientPyJinja, MethodMetadata, MethodParameter
+from .file_writer import ConfigurableFileWriter
 from ..openapi_parser.openapi_parser import OpenAPIParser
 from ..openapi_parser.models import (
     HttpParameter,
@@ -30,6 +31,7 @@ class SDKGenerator:
         output_dir: Path,
         models_dir: Path,
         generate_tests: bool = True,
+        config_path: Optional[str] = None,
     ):
         self.metadata = metadata
         self.output_dir = output_dir
@@ -37,6 +39,7 @@ class SDKGenerator:
         self.generate_tests = generate_tests
         self.template_dir = Path(__file__).parent / "templates"
         self.env = Environment(loader=FileSystemLoader(str(self.template_dir)))
+        self.file_writer = ConfigurableFileWriter(config_path)
 
     def _clean_lower(self, tag: str) -> str:
         """Clean tag name to be a valid Python identifier"""
@@ -123,8 +126,7 @@ class SDKGenerator:
 
         # Write the complete spec
         openapi_file = self.output_dir / "openapi.json"
-        with open(openapi_file, "w") as f:
-            json.dump(openapi_spec, f, indent=2)
+        self.file_writer.write(openapi_file, json.dumps(openapi_spec, indent=2))
 
         # Generate models
         self.models_dir.mkdir(parents=True, exist_ok=True)
@@ -435,7 +437,7 @@ class SDKGenerator:
         base_client_file = base_client_filename + file_ext
         base_client_path = src_dir / base_client_file
         base_client_content = self._generate_base_client(parent_class_name, tags)
-        base_client_path.write_text(base_client_content)
+        self.file_writer.write(base_client_path, base_client_content)
 
         for tag, operations in operations_by_tag.items():
             # Generate client
@@ -454,7 +456,7 @@ class SDKGenerator:
             tag_dir = tag_metadata.tag_dir
             tag_file = tag_metadata.tag_filename + file_ext
             client_path = src_dir / tag_dir / tag_file
-            client_path.write_text(client_content)
+            self.file_writer.write(client_path, client_content)
 
             if self.generate_tests:
                 # Generate tests
@@ -463,12 +465,12 @@ class SDKGenerator:
                 tag_test_file = tag_metadata.tag_filename + "_test" + file_ext
                 test_path = test_dir / tag_test_file
                 test_content = self._generate_tests(tag, operations)
-                test_path.write_text(test_content)
+                self.file_writer.write(test_path, test_content)
 
         # Generate README
         readme_path = self.output_dir / "README.md"
         readme_content = self._generate_readme(operations_by_tag)
-        readme_path.write_text(readme_content)
+        self.file_writer.write(readme_path, readme_content)
 
 
 @click.command()
@@ -495,23 +497,33 @@ class SDKGenerator:
 @click.option(
     "--tests/--no-tests", default=False, help="Generate tests (default: False)"
 )
-def main(input_file: str, sdk_output: str, models_output: Optional[str], tests: bool):
+@click.option("--config", type=str, help="Path to borea.config.json")
+def main(
+    input_file: str,
+    sdk_output: str,
+    models_output: Optional[str],
+    tests: bool,
+    config: Optional[str],
+):
     """Generate a Python SDK from an OpenAPI specification."""
-    # Parse OpenAPI spec
     openapi_path = str(Path(input_file).resolve())
-    parser = OpenAPIParser(openapi_path=openapi_path)
+    parser = OpenAPIParser(openapi_path)
     metadata = parser.parse()
+    sdk_output_path = Path(sdk_output)
+    models_output_path = (
+        Path(models_output) if models_output else sdk_output_path / "models"
+    )
 
-    # Set up paths
-    sdk_dir = Path(sdk_output)
-    # TODO default models dir
-    models_dir = Path(models_output) if models_output else sdk_dir / "models"
-
-    # Generate SDK
-    generator = SDKGenerator(metadata, sdk_dir, models_dir, tests)
+    generator = SDKGenerator(
+        metadata,
+        sdk_output_path,
+        models_output_path,
+        generate_tests=tests,
+        config_path=config,
+    )
     generator.generate()
 
-    print(f"Successfully generated SDK in: {sdk_dir}")
+    print(f"Successfully generated SDK in: {sdk_output}")
 
 
 if __name__ == "__main__":
