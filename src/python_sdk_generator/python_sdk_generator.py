@@ -328,6 +328,12 @@ class SDKGenerator:
             "client.py.jinja", template_metadata=template_metadata
         )
 
+    def _generate_handler(self) -> str:
+        """Generate the handler for a specific path / operation in OpenAPI"""
+        return self._render_template_and_format_code(
+            "handler.py.jinja", template_metadata={}
+        )
+
     def _generate_base_client(
         self, parent_class_name: str, tags: List[OpenAPITagMetadata]
     ) -> str:
@@ -349,9 +355,6 @@ class SDKGenerator:
     def _generate_schema_files(self, file_ext: str, models_filename: str) -> None:
         """Generate individual schema files for each component in the models_output directory."""
         self.file_writer.create_directory(str(self.models_dir))
-
-        # init_file = self.models_dir / "__init__.py"
-        # self.file_writer.write(str(init_file), "")
 
         schemas = {
             **self.metadata.components.schemas,
@@ -377,7 +380,7 @@ class SDKGenerator:
             self.file_writer.write(str(file_path), rendered_code)
 
     def _render_template_and_format_code(
-        self, template_name: str, template_metadata: Any
+        self, template_name: str, template_metadata: Dict[str, Any]
     ) -> str:
         template = self.env.get_template(template_name)
         try:
@@ -481,7 +484,7 @@ class SDKGenerator:
                 self.file_writer.create_directory(str(handler_file_dir_path))
                 handler_file = op.operation_id + file_ext
                 handler_file_path = handler_file_dir_path / handler_file
-                operation_handler_content = ""
+                operation_handler_content = self._generate_handler()
                 self.file_writer.write(
                     str(handler_file_path), operation_handler_content
                 )
@@ -501,7 +504,7 @@ class SDKGenerator:
         # Generate README
         readme_path = self.output_dir / "README.md"
         readme_content = self._generate_readme(operations_by_tag)
-        self.file_writer.write(str(readme_path), readme_content)
+        # self.file_writer.write(str(readme_path), readme_content)
 
 
 @click.command()
