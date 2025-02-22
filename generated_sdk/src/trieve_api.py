@@ -6,22 +6,21 @@ from typing import Any, Callable, Dict, Optional
 import httpx
 from ..models.models import *
 
-from .analytics.analytics_handler import Analytics
-from .auth.auth_handler import Auth
-from .chunk.chunk_handler import Chunk
-from .chunk_group.chunk_group_handler import ChunkGroup
-from .crawl.crawl_handler import Crawl
-from .dataset.dataset_handler import Dataset
-from .file.file_handler import File
-from .health.health_handler import Health
-from .invitation.invitation_handler import Invitation
-from .message.message_handler import Message
-from .organization.organization_handler import Organization
-from .public.public_handler import Public
-from .stripe.stripe_handler import Stripe
-from .topic.topic_handler import Topic
-from .user.user_handler import User
-from .metrics.metrics_handler import Metrics
+from .invitation.invitation import Invitation
+from .auth.auth import Auth
+from .user.user import User
+from .organization.organization import Organization
+from .dataset.dataset import Dataset
+from .chunk.chunk import Chunk
+from .chunk_group.chunk_group import ChunkGroup
+from .crawl.crawl import Crawl
+from .file.file import File
+from .topic.topic import Topic
+from .message.message import Message
+from .stripe.stripe import Stripe
+from .health.health import Health
+from .metrics.metrics import Metrics
+from .analytics.analytics import Analytics
 
 
 class TrieveApi:
@@ -58,22 +57,21 @@ class TrieveApi:
         self.client.headers.update({"TR-Organization": ""})
         self.client.headers.update({"X-API-Version": ""})
 
-        self.analytics = Analytics(self)
-        self.auth = Auth(self)
-        self.chunk = Chunk(self)
-        self.chunk_group = ChunkGroup(self)
-        self.crawl = Crawl(self)
-        self.dataset = Dataset(self)
-        self.file = File(self)
-        self.health = Health(self)
-        self.invitation = Invitation(self)
-        self.message = Message(self)
-        self.organization = Organization(self)
-        self.public = Public(self)
-        self.stripe = Stripe(self)
-        self.topic = Topic(self)
-        self.user = User(self)
-        self.metrics = Metrics(self)
+        self.invitation = Invitation(parent=self)
+        self.auth = Auth(parent=self)
+        self.user = User(parent=self)
+        self.organization = Organization(parent=self)
+        self.dataset = Dataset(parent=self)
+        self.chunk = Chunk(parent=self)
+        self.chunk_group = ChunkGroup(parent=self)
+        self.crawl = Crawl(parent=self)
+        self.file = File(parent=self)
+        self.topic = Topic(parent=self)
+        self.message = Message(parent=self)
+        self.stripe = Stripe(parent=self)
+        self.health = Health(parent=self)
+        self.metrics = Metrics(parent=self)
+        self.analytics = Analytics(parent=self)
 
     def _make_request(
         self,
