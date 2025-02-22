@@ -389,6 +389,7 @@ class SDKGenerator:
             formatted_code = black.format_str(rendered_code, mode=black.Mode())
         except Exception as e:
             click.echo(rendered_code)
+            # TODO
             print(template_metadata.get("description"))
             raise e
         return formatted_code
