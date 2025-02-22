@@ -13,9 +13,12 @@ class MethodParameter(BaseModel):
     description: str
 
 
-class MethodMetadata(BaseModel):
+class HandlerClassPyJinja(BaseModel):
     """Represent the data necessary to generate method"""
 
+    parent_class_name: str
+    parent_filename: str
+    class_name: str
     method_name: str
     description: str
     required_method_params: List[MethodParameter]
@@ -25,13 +28,3 @@ class MethodMetadata(BaseModel):
     http_params: List[HttpParameter] = Field(default_factory=[])
     request_body: Optional[SchemaMetadata] = None
     nested_schema: Optional[Dict[str, Any]] = None
-
-
-class ClientPyJinja(BaseModel):
-    """Represents the data the client.py.jinja template needs"""
-
-    parent_class_name: str
-    parent_filename: str
-    class_name: str
-    description: str
-    methods: List[MethodMetadata] = Field(default_factory=[])

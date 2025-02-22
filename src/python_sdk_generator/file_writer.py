@@ -47,7 +47,10 @@ class ConfigurableFileWriter:
             bool: True if the path should be ignored, False otherwise
         """
         path = str(Path(path))  # Normalize path separators
-        return any(fnmatch.fnmatch(path, pattern) for pattern in self.ignore_patterns)
+        return any(
+            fnmatch.fnmatch(name=path, pattern=pattern)
+            for pattern in self.ignore_patterns
+        )
 
     def create_directory(self, path: str) -> bool:
         """
@@ -105,7 +108,7 @@ class ConfigurableFileWriter:
         return True
 
     def generate_python_models(
-        self, models_dir: str, model_file_path: str, openapi_path: str
+        self, models_dir: str, models_file_path: str, openapi_path: str
     ) -> bool:
         """
         Generate Python models using datamodel-codegen.
@@ -124,7 +127,7 @@ class ConfigurableFileWriter:
         if not self.create_directory(models_dir):
             return False
 
-        models_path = Path(models_dir) / model_file_path
+        models_path = Path(models_dir) / models_file_path
         if self.should_ignore(str(models_path)):
             click.echo(f"Skipping model generation: {models_path} is ignored")
             return False

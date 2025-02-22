@@ -1,29 +1,24 @@
 {% extends "base.jinja" %}
 
 {% block content %}
+# TODO: not implemented
+
 from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
-from ...models.models import *
+from ....models.models import *
 
 if TYPE_CHECKING:
-    from ..{{ parent_filename }} import {{ parent_class_name }}
+    from ...{{ parent_filename }} import {{ parent_class_name }}
 
 class {{ class_name }}:
     def __init__(
         self,
         parent: "{{ parent_class_name }}"
     ):
-        """
-        {{ description }}
-
-        Args:
-            parent: The parent client to use for the requests
-        """
         self.parent = parent
 
-{% for method in methods %}
-    {%- set method_name = method.method_name %}
-    {%- set required_params = method.required_method_params %}
-    {%- set optional_params = method.optional_method_params %}
+    {%- set method_name = method_name %}
+    {%- set required_params = required_method_params %}
+    {%- set optional_params = optional_method_params %}
     def {{ method_name }}(
         self,
         {%- for required_param in required_params %}
@@ -34,8 +29,8 @@ class {{ class_name }}:
         {%- endfor %}
     ) -> Any:
         """
-        {{ method.description }}
-        {%- if method.required_method_params or method.optional_method_params or method.request_body %}
+        {{ description }}
+        {%- if required_method_params or optional_method_params or request_body %}
 
         Args:
             {%- for required_param in required_params %}
@@ -49,11 +44,11 @@ class {{ class_name }}:
         Returns:
             Response data
         """
-        path = f"{{ method.path }}"
-        {%- if method.http_params %}
+        path = f"{{ path }}"
+        {%- if http_params %}
         params = {}
         headers = {}
-        {%- for param in method.http_params %}
+        {%- for param in http_params %}
         {%- if param.in_location == "query" %}
         if {{ param.name }} is not None:
             params["{{ param.original_name }}"] = {{ param.name }}
@@ -68,10 +63,10 @@ class {{ class_name }}:
         headers = None
         {%- endif %}
 
-        {%- if method.request_body %}
-        {%- if method.nested_schema and method.nested_schema.properties %}
+        {%- if request_body %}
+        {%- if nested_schema and nested_schema.properties %}
         json_data = {
-            {%- for prop_name in method.nested_schema.properties %}
+            {%- for prop_name in nested_schema.properties %}
             "{{ prop_name }}": {{ prop_name }} if {{ prop_name }} is not None else None,
         {%- endfor %}
         }
@@ -84,12 +79,11 @@ class {{ class_name }}:
         {%- endif %}
 
         response = self.parent._make_request(
-            method="{{ method.http_method }}",
+            method="{{ http_method }}",
             path=path,
             params=params,
             headers=headers,
             json_data=json_data,
         )
         return response.json()
-{% endfor %}
 {% endblock %}

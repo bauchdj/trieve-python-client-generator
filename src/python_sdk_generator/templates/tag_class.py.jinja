@@ -1,0 +1,28 @@
+{% extends "base.jinja" %}
+
+{% block content %}
+from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
+from ...models.models import *
+{% for op_metadata in operation_metadata  %}
+from .{{ op_metadata.handler_dir }}.{{ op_metadata.handler_filename }} import {{ op_metadata.handler_class_name }}
+{%- endfor %}
+
+if TYPE_CHECKING:
+    from ..{{ parent_filename }} import {{ parent_class_name }}
+
+class {{ class_name }}:
+    def __init__(
+        self,
+        parent: "{{ parent_class_name }}"
+    ):
+        """
+        {{ description }}
+
+        Args:
+            parent: The parent client to use for the requests
+        """
+        self.parent = parent
+        {% for op_metadata in operation_metadata  %}
+        self.{{ op_metadata.handler_filename }} = {{ op_metadata.handler_class_name }}(parent=parent).{{ op_metadata.handler_filename }}
+        {%- endfor %}
+{% endblock %}

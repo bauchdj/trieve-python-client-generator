@@ -42,7 +42,7 @@ class {{ class_name }}:
         self.client.headers.update({"{{ header.name }}": "{{ header.default if header.default else '' }}"})
         {%- endfor %}
         {% for tag in tags%}
-        self.{{ tag.tag_prop_name }} = {{ tag.tag_class_name }}(self)
+        self.{{ tag.tag_prop_name }} = {{ tag.tag_class_name }}(parent=self)
         {%- endfor %}
 
     def _make_request(
