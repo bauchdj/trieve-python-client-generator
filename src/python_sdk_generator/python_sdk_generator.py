@@ -145,7 +145,6 @@ class SDKGenerator:
         else:
             pass
 
-        # print("END", resolved_type)
         return resolved_type
 
     def _get_single_nested_schema(

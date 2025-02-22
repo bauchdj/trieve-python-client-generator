@@ -1,16 +1,16 @@
 {
 	"ignores": [
-		"^__pycache__/.*",
-		"\\.pyc$",
-		"\\.pyo$",
-		"\\.pyd$",
-		"\\.so$",
-		"\\.git/.*",
-		"^.*/\\.DS_Store$",
-		"^.*/\\.env$",
-		"^.*/\\.venv/.*",
-		"^.*/\\.idea/.*",
-		"^.*/\\.vscode/.*",
-		"^.*/node_modules/.*"
+		"**/__pycache__/*",
+		"*.pyc",
+		"*.pyo",
+		"*.pyd",
+		"*.so",
+		".git/*",
+		"**/.DS_Store",
+		"**/.env",
+		"**/.venv/*",
+		"**/.idea/*",
+		"**/.vscode/*",
+		"**/node_modules/*"
 	]
 }

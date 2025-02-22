@@ -1,7 +1,7 @@
 import json
-import re
 from pathlib import Path
 from typing import List, Optional
+import fnmatch
 
 import click
 
@@ -19,9 +19,6 @@ class ConfigurableFileWriter:
         )
         self.ignore_patterns: List[str] = []
         self._load_config()
-        self.compiled_patterns = [
-            re.compile(pattern) for pattern in self.ignore_patterns
-        ]
 
     def _load_config(self) -> None:
         """Load the configuration file and extract ignore patterns."""
@@ -41,6 +38,7 @@ class ConfigurableFileWriter:
     def should_ignore(self, path: str) -> bool:
         """
         Check if a path should be ignored based on the ignore patterns.
+        Uses glob pattern matching (e.g., *, **, ?, [seq], [!seq]).
 
         Args:
             path: The path to check against ignore patterns
@@ -49,7 +47,7 @@ class ConfigurableFileWriter:
             bool: True if the path should be ignored, False otherwise
         """
         path = str(Path(path))  # Normalize path separators
-        return any(pattern.search(path) for pattern in self.compiled_patterns)
+        return any(fnmatch.fnmatch(path, pattern) for pattern in self.ignore_patterns)
 
     def create_directory(self, path: str) -> bool:
         """
@@ -77,7 +75,6 @@ class ConfigurableFileWriter:
             return False
 
         # Create the directory since parent exists and is not ignored
-        print("Creating directory:", path)
         path.mkdir(exist_ok=True)
         return True
 
