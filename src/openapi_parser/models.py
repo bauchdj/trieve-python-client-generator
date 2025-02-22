@@ -38,7 +38,7 @@ class Operation(BaseModel):
     """Represents an OpenAPI operation"""
 
     tag: str
-    operationId: str
+    operation_id: str
     method: str
     path: str
     summary: str = ""

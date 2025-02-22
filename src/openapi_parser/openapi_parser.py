@@ -80,7 +80,7 @@ class OpenAPIParser:
         """
         return Operation(
             tag=details.get("tags", [""])[0],
-            operationId=details["operationId"],
+            operation_id=details["operationId"],
             method=method.upper(),
             path=path,
             summary=details.get("summary", ""),

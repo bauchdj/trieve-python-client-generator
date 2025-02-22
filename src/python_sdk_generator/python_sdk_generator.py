@@ -76,7 +76,7 @@ class SDKGenerator:
         return "_".join(word.lower() for word in words)
 
     def _group_operations_by_tag(
-        self, src_dir: Path
+        self,
     ) -> Tuple[Dict[str, List[Operation]], Dict[str, OpenAPITagMetadata]]:
         """Group operations by their tags"""
         operations_by_tag: Dict[str, List[Operation]] = {}
@@ -89,13 +89,11 @@ class SDKGenerator:
             operations_by_tag[tag_lowered].append(op)
 
             tag_capitalized = self._clean_capitalize(tag)
-            tag_dir = src_dir / tag_lowered
             tag_filename = tag_lowered + "_handler"
 
             tag_metadata_by_tag[tag_lowered] = OpenAPITagMetadata(
                 tag=tag,
-                tag_dir=tag_dir.name,
-                tag_dir_path=str(tag_dir),
+                tag_dir=tag_lowered,
                 tag_filename=tag_filename,
                 tag_class_name=tag_capitalized,
                 tag_prop_name=tag_lowered,
@@ -287,7 +285,7 @@ class SDKGenerator:
             )
             methods.append(
                 MethodMetadata(
-                    method_name=op.operationId,
+                    method_name=op.operation_id,
                     description=op.description,
                     required_method_params=required_method_params,
                     optional_method_params=optional_method_params,
@@ -391,7 +389,7 @@ class SDKGenerator:
         parent_class_name = self._clean_capitalize(self.metadata.info.title)
 
         # Group operations by tag
-        operations_by_tag, tag_metadata_by_tag = self._group_operations_by_tag(src_dir)
+        operations_by_tag, tag_metadata_by_tag = self._group_operations_by_tag()
 
         # Generate base client
         file_ext = ".py"
@@ -404,31 +402,33 @@ class SDKGenerator:
         self.file_writer.write(str(base_client_path), base_client_content)
 
         for tag, operations in operations_by_tag.items():
-            # Generate client
             tag_metadata = tag_metadata_by_tag[tag]
-            tag_class_name = tag_metadata.tag_class_name
-            tag_description = self._get_tag_description(tag)
-
-            client_content = self._generate_client_class(
-                tag_class_name,
-                tag_description,
-                operations,
-                parent_class_name,
-                base_client_filename,
-            )
-
-            tag_dir_path = Path(tag_metadata.tag_dir_path)
+            tag_dir_path = src_dir / tag_metadata.tag_dir
+            tag_test_dir_path = test_dir / tag_metadata.tag_dir
             self.file_writer.create_directory(str(tag_dir_path))
-            tag_file = tag_metadata.tag_filename + file_ext
-            client_path = tag_dir_path / tag_file
-            self.file_writer.write(str(client_path), client_content)
-
             if self.generate_tests:
-                # Generate tests
-                tag_test_file = tag_metadata.tag_filename + "_test" + file_ext
-                test_path = test_dir / tag_test_file
-                test_content = self._generate_tests(tag, operations)
-                self.file_writer.write(str(test_path), test_content)
+                self.file_writer.create_directory(str(tag_test_dir_path))
+
+            for op in operations:
+                handler_file_dir_path = tag_dir_path / op.operation_id
+                self.file_writer.create_directory(str(handler_file_dir_path))
+                handler_file = op.operation_id + file_ext
+                handler_file_path = handler_file_dir_path / handler_file
+                operation_handler_content = ""
+                self.file_writer.write(
+                    str(handler_file_path), operation_handler_content
+                )
+
+                if self.generate_tests:
+                    handler_test_file_dir_path = tag_test_dir_path / op.operation_id
+                    self.file_writer.create_directory(str(handler_test_file_dir_path))
+                    handler_test_file = op.operation_id + "_test" + file_ext
+                    handler_test_file_path = (
+                        handler_test_file_dir_path / handler_test_file
+                    )
+                    test_content = ""
+                    # test_content = self._generate_tests(tag, operations)
+                    self.file_writer.write(str(handler_test_file_path), test_content)
 
         # Generate README
         readme_path = self.output_dir / "README.md"
@@ -453,14 +453,14 @@ class SDKGenerator:
 )
 @click.option(
     "--models-output",
-    default="generated_sdk/models",
+    required=False,
     type=click.Path(),
     help="Output directory for generated models (default: <sdk-output>/models)",
 )
 @click.option(
     "--tests/--no-tests", default=False, help="Generate tests (default: False)"
 )
-@click.option("--config", type=str, help="Path to borea.config.json")
+@click.option("--config", required=False, type=str, help="Path to borea.config.json")
 def main(
     input_file: str,
     sdk_output: str,
