@@ -71,12 +71,20 @@ class OpenAPITag(BaseModel):
     description: str
 
 
+class Component(BaseModel):
+    """Represents a component in OpenAPI metadata"""
+
+    schemas: Dict[str, Any] = Field(default_factory=dict)
+    securitySchemes: Dict[str, Any] = Field(default_factory=dict)
+
+
 class OpenAPIMetadata(BaseModel):
     """Represents the parsed OpenAPI metadata"""
 
     openapi: str
     info: Info
     servers: List[Server]
+    components: Component
     tags: List[OpenAPITag]
     operations: List[Operation]
     headers: List[HttpHeader]

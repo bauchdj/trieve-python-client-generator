@@ -52,10 +52,12 @@ class OpenAPIParser:
         info = self.openapi_spec.get("info", {})
         servers = self.openapi_spec.get("servers", [])
         tags = self.openapi_spec.get("tags", [])
+        components = self.openapi_spec.get("components", {})
         return OpenAPIMetadata(
             openapi=openapi,
             info=info,
             servers=servers,
+            components=components,
             tags=tags,
             headers=headers,
             operations=operations,

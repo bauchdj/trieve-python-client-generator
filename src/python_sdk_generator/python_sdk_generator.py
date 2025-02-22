@@ -1,6 +1,4 @@
 import json
-from os import name
-import subprocess
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
@@ -8,12 +6,12 @@ import click
 import black
 from jinja2 import Environment, FileSystemLoader
 
-from src.python_sdk_generator.models.model_base_client import (
+from .models.schema_model import SchemaPyJinja
+from .models.base_client_models import (
     BaseClientPyJinja,
     OpenAPITagMetadata,
 )
-
-from .models.model_client import ClientPyJinja, MethodMetadata, MethodParameter
+from .models.client_models import ClientPyJinja, MethodMetadata, MethodParameter
 from .file_writer import ConfigurableFileWriter
 from ..openapi_parser.openapi_parser import OpenAPIParser
 from ..openapi_parser.models import (
@@ -74,6 +72,27 @@ class SDKGenerator:
         name = name.replace("-", " ")
         words = name.split()
         return "_".join(word.lower() for word in words)
+
+    def _clean_schema_name(self, name: str) -> str:
+        """Clean name to be a valid Python identifier"""
+        return name.replace("-", "_").replace(" ", "_")
+
+    def _replace_dashes_with_underscores(self, name: str) -> str:
+        """Replace dashes with underscores"""
+        return name.replace("-", "_")
+
+    def _replace_spaces_with_underscores(self, name: str) -> str:
+        """Replace spaces with underscores"""
+        return name.replace(" ", "_")
+
+    def _format_description(self, description: str) -> str:
+        """Format description to be a valid Python docstring"""
+        return (
+            description.replace("\\t", "")
+            .replace("\\n", "")
+            .replace("\\r", "")
+            .replace('"', "'")
+        )
 
     def _group_operations_by_tag(
         self,
@@ -327,12 +346,51 @@ class SDKGenerator:
             "base_client.py.jinja", template_metadata=template_metadata
         )
 
+    def _generate_schema_files(self, file_ext: str, models_filename: str) -> None:
+        """Generate individual schema files for each component in the models_output directory."""
+        self.file_writer.create_directory(str(self.models_dir))
+
+        # init_file = self.models_dir / "__init__.py"
+        # self.file_writer.write(str(init_file), "")
+
+        schemas = {
+            **self.metadata.components.schemas,
+            # **self.metadata.components.securitySchemes,
+        }
+
+        for schema_name, schema_data in schemas.items():
+            file_name = self._clean_schema_name(schema_name) + file_ext
+            file_path = self.models_dir / file_name
+            description = schema_data.get("description", "")
+            description = self._format_description(description)
+
+            template_metadata = SchemaPyJinja(
+                schema_name=schema_name,
+                schema_data=schema_data,
+                models_filename=models_filename,
+                description=description,
+            ).model_dump()
+
+            rendered_code = self._render_template_and_format_code(
+                "schema.py.jinja", template_metadata=template_metadata
+            )
+            self.file_writer.write(str(file_path), rendered_code)
+
     def _render_template_and_format_code(
         self, template_name: str, template_metadata: Any
     ) -> str:
         template = self.env.get_template(template_name)
-        rendered_code = template.render(template_metadata)
-        formatted_code = black.format_str(rendered_code, mode=black.Mode())
+        try:
+            rendered_code = template.render(template_metadata)
+        except Exception as e:
+            click.echo(template_metadata)
+            raise e
+        try:
+            formatted_code = black.format_str(rendered_code, mode=black.Mode())
+        except Exception as e:
+            click.echo(rendered_code)
+            print(template_metadata.get("description"))
+            raise e
         return formatted_code
 
     def _generate_tests(self, tag: str, operations: List[Operation]) -> str:
@@ -363,6 +421,8 @@ class SDKGenerator:
 
     def generate(self) -> None:
         """Generate the SDK."""
+        file_ext = ".py"
+
         # Create output directories
         self.file_writer.create_directory(str(self.output_dir))
 
@@ -374,7 +434,14 @@ class SDKGenerator:
 
         # Generate models
         openapi_path = str(Path(self.metadata.source_file))
-        self.file_writer.generate_python_models(str(self.models_dir), openapi_path)
+        models_file = "models"
+        models_file_path = models_file + file_ext
+        self.file_writer.generate_python_models(
+            str(self.models_dir), models_file_path, openapi_path
+        )
+
+        # Generate schema files
+        self._generate_schema_files(file_ext, models_file)
 
         # Generate base client
         src_dir = self.output_dir / "src"
@@ -392,7 +459,6 @@ class SDKGenerator:
         operations_by_tag, tag_metadata_by_tag = self._group_operations_by_tag()
 
         # Generate base client
-        file_ext = ".py"
         base_client_filename = self._clean_file_name(self.metadata.info.title)
         base_client_file = base_client_filename + file_ext
         base_client_path = src_dir / base_client_file
@@ -419,6 +485,7 @@ class SDKGenerator:
                     str(handler_file_path), operation_handler_content
                 )
 
+                # Generate tests
                 if self.generate_tests:
                     handler_test_file_dir_path = tag_test_dir_path / op.operation_id
                     self.file_writer.create_directory(str(handler_test_file_dir_path))
@@ -486,7 +553,7 @@ def main(
     )
     generator.generate()
 
-    print(f"Successfully generated SDK in: {sdk_output}")
+    click.echo(f"Successfully generated SDK in: {sdk_output}")
 
 
 if __name__ == "__main__":
