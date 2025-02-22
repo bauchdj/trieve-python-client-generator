@@ -1,3 +1,9 @@
 {
+	"generator": {
+		"input": "openapi.json",
+		"sdkOutput": "generated_sdk",
+		"modelsOutput": "models",
+		"tests": false
+	},
 	"ignores": []
 }

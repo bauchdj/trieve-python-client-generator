@@ -6,6 +6,8 @@ import click
 import black
 from jinja2 import Environment, FileSystemLoader
 
+from ..models.borea_config_models import GeneratorConfig, BoreaConfig
+
 from .models.schema_model import SchemaPyJinja
 from .models.base_client_models import (
     BaseClientPyJinja,
@@ -379,8 +381,26 @@ class SDKGenerator:
             )
             self.file_writer.write(str(file_path), rendered_code)
 
+    def _generate_requirements(self) -> str:
+        """Generate requirements.txt with required dependencies using a template"""
+        from datetime import datetime
+
+        template_metadata = {
+            "package_name": self.metadata.info.title,
+            "generation_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        }
+
+        return self._render_template_and_format_code(
+            "requirements.txt.jinja",
+            template_metadata=template_metadata,
+            format_with_black=False,
+        )
+
     def _render_template_and_format_code(
-        self, template_name: str, template_metadata: Dict[str, Any]
+        self,
+        template_name: str,
+        template_metadata: Dict[str, Any],
+        format_with_black: bool = True,
     ) -> str:
         template = self.env.get_template(template_name)
         try:
@@ -388,34 +408,41 @@ class SDKGenerator:
         except Exception as e:
             click.echo(template_metadata)
             raise e
-        try:
-            formatted_code = black.format_str(rendered_code, mode=black.Mode())
-        except Exception as e:
-            click.echo(rendered_code)
-            # TODO
-            print(template_metadata.get("description"))
-            raise e
-        return formatted_code
+
+        if format_with_black:
+            try:
+                formatted_code = black.format_str(rendered_code, mode=black.Mode())
+            except Exception as e:
+                click.echo(rendered_code)
+                raise e
+            return formatted_code
+        else:
+            return rendered_code
 
     def _generate_tests(self, tag: str, operations: List[Operation]) -> str:
         """Generate tests for a specific tag"""
         template = self.env.get_template("test_client.py.jinja")
-        rendered_code = template.render(
-            tag=tag,
-            operations=operations,
-            class_name=self._clean_capitalize(tag),
-            metadata=self.metadata,
+        template_metadata = {
+            "tag": tag,
+            "operations": operations,
+            "class_name": self._clean_capitalize(tag),
+            "metadata": self.metadata,
+        }
+        return self._render_template_and_format_code(
+            "test_client.py.jinja", template_metadata=template_metadata
         )
-        formatted_code = black.format_str(rendered_code, mode=black.Mode())
-        return formatted_code
 
     def _generate_readme(self, operations_by_tag: Dict[str, List[Operation]]) -> str:
         """Generate README.md with SDK documentation"""
-        template = self.env.get_template("README.md.jinja")
-        rendered_code = template.render(
-            metadata=self.metadata, operations_by_tag=operations_by_tag
+        template_metadata = {
+            "metadata": self.metadata,
+            "operations_by_tag": operations_by_tag,
+        }
+        return self._render_template_and_format_code(
+            "README.md.jinja",
+            template_metadata=template_metadata,
+            format_with_black=False,
         )
-        return rendered_code
 
     def _get_tag_description(self, tag: str) -> Union[str, None]:
         for t in self.metadata.tags:
@@ -501,24 +528,41 @@ class SDKGenerator:
                     # test_content = self._generate_tests(tag, operations)
                     self.file_writer.write(str(handler_test_file_path), test_content)
 
+        # Generate requirements.txt
+        requirements_path = self.output_dir / "requirements.txt"
+        requirements_content = self._generate_requirements()
+        self.file_writer.write(str(requirements_path), requirements_content)
+
         # Generate README
         readme_path = self.output_dir / "README.md"
         readme_content = self._generate_readme(operations_by_tag)
         # self.file_writer.write(str(readme_path), readme_content)
 
 
+def load_config(config_path: str = "borea.config.json") -> Dict[str, Any]:
+    """Load configuration from borea.config.json"""
+    try:
+        with open(config_path) as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
+
+
+default_models_dir = "models"
+
+
 @click.command()
 @click.option(
     "--input",
     "input_file",
-    default="openapi.json",
+    required=False,
     type=click.Path(exists=True),
     help="OpenAPI specification file (JSON or YAML)",
 )
 @click.option(
     "--sdk-output",
     "-o",
-    default="generated_sdk",
+    required=False,
     type=click.Path(),
     help="Output directory for the generated SDK",
 )
@@ -526,38 +570,60 @@ class SDKGenerator:
     "--models-output",
     required=False,
     type=click.Path(),
-    help="Output directory for generated models (default: <sdk-output>/models)",
+    help=f"Output directory for generated models (default: <sdk-output>/{default_models_dir})",
 )
 @click.option(
-    "--tests/--no-tests", default=False, help="Generate tests (default: False)"
+    "--tests", required=False, type=bool, help="Generate tests (default: False)"
 )
-@click.option("--config", required=False, type=str, help="Path to borea.config.json")
+@click.option(
+    "--config", default="borea.config.json", type=str, help="Path to borea.config.json"
+)
 def main(
-    input_file: str,
-    sdk_output: str,
+    input_file: Optional[str],
+    sdk_output: Optional[str],
     models_output: Optional[str],
-    tests: bool,
+    tests: Optional[bool],
     config: Optional[str],
 ):
     """Generate a Python SDK from an OpenAPI specification."""
-    openapi_path = str(Path(input_file).resolve())
-    parser = OpenAPIParser(openapi_path)
-    metadata = parser.parse()
-    sdk_output_path = Path(sdk_output)
-    models_output_path = (
-        Path(models_output) if models_output else sdk_output_path / "models"
+    # Load config values
+    borea_config = load_config(config) if config else {}
+    generator_config = borea_config.get("generator", {})
+    ignores = borea_config.get("ignores", [])
+
+    borea_config = BoreaConfig(
+        generator=GeneratorConfig(**generator_config),
+        ignores=ignores,
     )
 
+    default_input = "openapi.json"
+    default_sdk_output = "generated_sdk"
+    default_tests = False
+
+    # Use Click options if provided, otherwise fall back to config values
+    openapi_input_path = input_file or borea_config.generator.input or default_input
+    sdk_output_path = Path(
+        sdk_output or borea_config.generator.sdkOutput or default_sdk_output
+    )
+    models_output_path = Path(
+        sdk_output_path
+        / (models_output or borea_config.generator.modelsOutput or default_models_dir)
+    )
+    tests = tests or borea_config.generator.tests or default_tests
+
+    parser = OpenAPIParser(openapi_input_path)
+    metadata = parser.parse()
+
     generator = SDKGenerator(
-        metadata,
-        sdk_output_path,
-        models_output_path,
+        metadata=metadata,
+        output_dir=sdk_output_path,
+        models_dir=models_output_path,
         generate_tests=tests,
         config_path=config,
     )
     generator.generate()
 
-    click.echo(f"Successfully generated SDK in: {sdk_output}")
+    click.echo(f"Successfully generated SDK in: {sdk_output_path}")
 
 
 if __name__ == "__main__":

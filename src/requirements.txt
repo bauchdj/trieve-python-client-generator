@@ -1,0 +1,9 @@
+black>=25.1.0
+datamodel-code-generator>=0.28.1
+pydantic>=2.10.6
+typing-extensions>=4.12.2
+python-dateutil>=2.9.0
+PyYAML>=6.0.2
+click>=8.1.8
+rich>=13.9.4
+jinja2>=3.1.5
