@@ -161,7 +161,7 @@ class OpenAPIParser:
                 ]
             )
         if "not" in schema:
-            return f"Not[{self._resolve_type(schema["not"])}]"
+            return f"Not[{self._resolve_type(schema['not'])}]"
         return schema.get("type", "any")
 
     def _extract_refs(self, schema: Dict[str, Any]) -> List[str]:
