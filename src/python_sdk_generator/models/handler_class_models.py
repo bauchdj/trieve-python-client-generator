@@ -23,7 +23,7 @@ class HandlerClassPyJinja(BaseModel):
     description: str
     required_method_params: List[MethodParameter]
     optional_method_params: List[MethodParameter]
-    http_method: Literal["GET", "POST", "PUT", "PATCH", "DELETE"]
+    http_method: Literal["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
     path: str
     http_params: List[HttpParameter] = Field(default_factory=[])
     request_body: Optional[SchemaMetadata] = None

@@ -1,3 +1,4 @@
+import re
 import json
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
@@ -48,21 +49,24 @@ class SDKGenerator:
 
     def _clean_lower(self, tag: str) -> str:
         """Clean tag name to be a valid Python identifier"""
-        return tag.lower().replace(" ", "_").replace("-", "_")
+        return self._sanitize_string(tag).lower().replace(" ", "_").replace("-", "_")
 
     def _clean_capitalize(self, name: str) -> str:
         """Clean name to be a valid Python identifier"""
         # Remove spaces and dashes, convert to camel case
-        words = name.replace("-", " ").replace("_", " ").split()
-        return "".join(word.capitalize() for word in words)
+        name = self._sanitize_string(name)
+        words = name.split("_")
+        return "".join(word if word.isupper() else word.capitalize() for word in words)
 
     def _clean_parameter_name(self, name: str) -> str:
         """Clean parameter name to be a valid Python identifier"""
         # Convert hyphens to underscores
-        return name.replace("-", "_").replace(" ", "_").lower()
+        return self._sanitize_string(name).replace("-", "_").replace(" ", "_").lower()
 
     def _clean_type_name(self, type_name: str) -> str:
         """Clean type name to be a valid Python type"""
+        if "int" in type_name:
+            return "int"
         type_map = {
             "string": "str",
             "integer": "int",
@@ -100,6 +104,13 @@ class SDKGenerator:
             .replace("\\r", "")
             .replace('"', "'")
         )
+
+    def _sanitize_string(self, s: str) -> str:
+        # Replace common delimiters with underscore
+        s = re.sub(r"[-/.,|:; ]", "_", s)
+        # Remove all other special characters (keeping alphanumerics and underscores)
+        s = re.sub(r"[^\w]", "", s)
+        return s
 
     def _get_tag_formats(self, tag: str) -> Tuple[str, str, str]:
         tag_dir = self._clean_lower(tag)
@@ -355,12 +366,13 @@ class SDKGenerator:
         self, parent_class_name: str, tag_metadata: List[OpenAPITagMetadata]
     ) -> str:
         """Generate the base class for methods of tag in OpenAPI"""
+        base_url = self.metadata.servers and self.metadata.servers[0].url or ""
         http_headers = self.metadata.headers
         template_metadata = SdkClassPyJinja(
             class_name=parent_class_name,
             class_title=self.metadata.info.title,
             class_description=self.metadata.info.description,
-            base_url=self.metadata.servers[0].url,
+            base_url=base_url,
             http_headers=http_headers,
             tags=tag_metadata,
         ).model_dump()

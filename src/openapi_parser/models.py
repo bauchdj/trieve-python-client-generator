@@ -68,7 +68,7 @@ class Server(BaseModel):
 
 class OpenAPITag(BaseModel):
     name: str
-    description: str
+    description: str = ""
 
 
 class Component(BaseModel):
