@@ -1,3 +1,8 @@
+# This repo has moved 2025-02-24
+
+All updates can be found at:
+https://github.com/Borea-dev/python-client-generator
+
 # Borea Python Client Generator
 
 This repository contains a Python SDK generator. It generates a Python client library from an OpenAPI specification.
